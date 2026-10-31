@@ -1,0 +1,171 @@
+{
+  "label": "SYNTHETIC - scripted shills added to a copy of the training split",
+  "summary": {
+    "0.0": {
+      "trust+gate": {
+        "n_seeds": 2,
+        "ndcg@10": {
+          "mean": 0.02442006983231918,
+          "std": 0.0002501170785591119
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.0,
+          "std": 0.0
+        },
+        "rows_gated": {
+          "mean": 262.0
+        },
+        "targets_per_list": {
+          "mean": 0.0,
+          "std": 0.0
+        }
+      },
+      "trust": {
+        "n_seeds": 2,
+        "ndcg@10": {
+          "mean": 0.026680838591511373,
+          "std": 0.0008970940550493809
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.0,
+          "std": 0.0
+        },
+        "rows_gated": {
+          "mean": 0.0
+        },
+        "targets_per_list": {
+          "mean": 0.0,
+          "std": 0.0
+        }
+      },
+      "none": {
+        "n_seeds": 3,
+        "ndcg@10": {
+          "mean": 0.02780016066096208,
+          "std": 0.0017654812905144458
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.0,
+          "std": 0.0
+        },
+        "rows_gated": {
+          "mean": 0.0
+        },
+        "targets_per_list": {
+          "mean": 0.0,
+          "std": 0.0
+        }
+      }
+    },
+    "0.2": {
+      "cola": {
+        "n_seeds": 4,
+        "ndcg@10": {
+          "mean": 0.02534481892347284,
+          "std": 0.002210858808944355
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.005907626208378088,
+          "std": 0.00294158194148854
+        },
+        "rows_gated": {
+          "mean": 0.0
+        },
+        "targets_per_list": {
+          "mean": 0.006713211600429645,
+          "std": 0.003885165487685411
+        }
+      },
+      "inverted": {
+        "n_seeds": 3,
+        "ndcg@10": {
+          "mean": 0.022295547844326608,
+          "std": 0.003273986065036768
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.0017901897601145722,
+          "std": 0.003100699619707979
+        },
+        "rows_gated": {
+          "mean": 0.0
+        },
+        "targets_per_list": {
+          "mean": 0.0035803795202291443,
+          "std": 0.006201399239415958
+        }
+      },
+      "none": {
+        "n_seeds": 3,
+        "ndcg@10": {
+          "mean": 0.02501492987030408,
+          "std": 0.0019816228066158485
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.0019692087361260296,
+          "std": 0.0015503498098539896
+        },
+        "rows_gated": {
+          "mean": 0.0
+        },
+        "targets_per_list": {
+          "mean": 0.0019692087361260296,
+          "std": 0.0015503498098539896
+        }
+      },
+      "oracle": {
+        "n_seeds": 3,
+        "ndcg@10": {
+          "mean": 0.026106408022014874,
+          "std": 0.0014330551491169555
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.005907626208378088,
+          "std": 0.001860419771824788
+        },
+        "rows_gated": {
+          "mean": 0.0
+        },
+        "targets_per_list": {
+          "mean": 0.006623702112423917,
+          "std": 0.002170489733795586
+        }
+      },
+      "trust+gate": {
+        "n_seeds": 3,
+        "ndcg@10": {
+          "mean": 0.025920620869320524,
+          "std": 0.0014287697166665426
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.011994271392767632,
+          "std": 0.011036922765340745
+        },
+        "rows_gated": {
+          "mean": 47377.0
+        },
+        "targets_per_list": {
+          "mean": 0.013068385248836377,
+          "std": 0.010759025564852646
+        }
+      },
+      "trust": {
+        "n_seeds": 3,
+        "ndcg@10": {
+          "mean": 0.02453657463030127,
+          "std": 0.00115929846381161
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.00322234156820623,
+          "std": 0.002841838142926521
+        },
+        "rows_gated": {
+          "mean": 0.0
+        },
+        "targets_per_list": {
+          "mean": 0.00322234156820623,
+          "std": 0.002841838142926521
+        }
+      }
+    }
+  }
+}

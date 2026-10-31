@@ -1,0 +1,529 @@
+{
+  "environment": {
+    "timestamp_utc": "2026-09-08T19:28:56+00:00",
+    "seed": 42,
+    "python": "3.12.14",
+    "git_revision": "not-a-git-repository",
+    "hardware": {
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "machine": "arm64",
+      "processor": "arm",
+      "cpu_count": 12,
+      "torch_threads": 6,
+      "cuda_available": false,
+      "mps_available": true,
+      "cpu_brand": "Apple M3 Pro",
+      "memory_bytes": 19327352832
+    },
+    "packages": {
+      "torch": "2.13.0",
+      "torch_geometric": "2.8.0.post1",
+      "pyg-lib": "0.8.0+pt213",
+      "numpy": "2.5.2",
+      "pandas": "3.0.5",
+      "scipy": "1.18.1",
+      "scikit-learn": "1.9.0",
+      "networkx": "3.6.1",
+      "sentence-transformers": "6.0.0",
+      "transformers": "5.15.1",
+      "nltk": "3.10.3",
+      "pyarrow": "25.0.1",
+      "matplotlib": "3.11.1",
+      "plotly": "6.9.0",
+      "streamlit": "1.62.0"
+    }
+  },
+  "config": {
+    "data": {
+      "dataset": {
+        "name": "amazon_reviews_2023",
+        "citation": "Hou et al. (2024), Bridging Language and Items for Retrieval and Recommendation",
+        "license_note": "Public research dataset. Used under its original terms; raw files are never modified."
+      },
+      "active_tier": "dev",
+      "tiers": {
+        "smoke": {
+          "category": "All_Beauty",
+          "reviews_url": "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/All_Beauty.jsonl",
+          "meta_url": "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/meta_categories/meta_All_Beauty.jsonl",
+          "materialise": true,
+          "limits": {
+            "max_reviews": 20000,
+            "max_users": null,
+            "max_products": null
+          },
+          "k_core": {
+            "min_interactions_per_user": 3,
+            "min_interactions_per_item": 3,
+            "max_passes": 100
+          }
+        },
+        "dev": {
+          "category": "Video_Games",
+          "reviews_url": "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/Video_Games.jsonl",
+          "meta_url": "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/meta_categories/meta_Video_Games.jsonl",
+          "materialise": true,
+          "limits": {
+            "max_reviews": 300000,
+            "max_users": 30000,
+            "max_products": 40000
+          },
+          "k_core": {
+            "min_interactions_per_user": 5,
+            "min_interactions_per_item": 5,
+            "max_passes": 100
+          }
+        },
+        "full": {
+          "category": "Electronics",
+          "reviews_url": "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/Electronics.jsonl",
+          "meta_url": "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/meta_categories/meta_Electronics.jsonl",
+          "materialise": false,
+          "stream_byte_budget": 2147483648,
+          "limits": {
+            "max_reviews": 1000000,
+            "max_users": 100000,
+            "max_products": 150000
+          },
+          "k_core": {
+            "min_interactions_per_user": 5,
+            "min_interactions_per_item": 5,
+            "max_passes": 100
+          }
+        }
+      },
+      "sampling": {
+        "strategy": "user_core",
+        "seed": 42,
+        "declare_bias": true
+      },
+      "schema": {
+        "interactions": {
+          "source_file": "reviews",
+          "field_map": {
+            "user_id": "user_id",
+            "item_id": "parent_asin",
+            "variant_id": "asin",
+            "rating": "rating",
+            "review_title": "title",
+            "review_text": "text",
+            "timestamp": "timestamp",
+            "helpful_votes": "helpful_vote",
+            "verified_purchase": "verified_purchase"
+          },
+          "required": [
+            "user_id",
+            "item_id",
+            "rating",
+            "timestamp"
+          ]
+        },
+        "products": {
+          "source_file": "meta",
+          "field_map": {
+            "item_id": "parent_asin",
+            "product_title": "title",
+            "product_description": "description",
+            "product_features": "features",
+            "brand": "store",
+            "main_category": "main_category",
+            "categories": "categories",
+            "price": "price",
+            "avg_rating_meta": "average_rating",
+            "rating_count_meta": "rating_number",
+            "details": "details",
+            "seller": null
+          },
+          "required": [
+            "item_id"
+          ]
+        },
+        "notes": {
+          "brand_is_store": "Amazon Reviews 2023 has NO `brand` field. `store` is the Amazon storefront name, which usually but not always coincides with the manufacturer. We map store -> brand and label the graph node type `Brand (proxy: store)`. This is an approximation and is reported as such; it is not a ground-truth brand.\n",
+          "seller_absent": "There is NO seller field. Per the project rule against inventing entities, the heterogeneous graph therefore has NO Seller node type and no `sold_by` edge. The architecture diagram must reflect this.\n",
+          "categories_sparse": "`categories` is an empty list for a large share of products. `main_category` is far better populated. The Category node type is built primarily from main_category, with the `categories` leaf used only when non-empty.\n",
+          "price_sparse": "`price` is null for a large share of products and is a string in some rows. Price is treated as an optional feature with an explicit missingness indicator, never imputed silently.\n",
+          "no_fraud_labels": "There are NO fake-review or fraud labels. Trust scores from Module 11/12 are therefore UNSUPERVISED and cannot be scored against ground truth. Evaluation uses synthetic injection experiments (Module 45), which must always be reported as synthetic.\n"
+        }
+      },
+      "cleaning": {
+        "rating": {
+          "min": 1.0,
+          "max": 5.0
+        },
+        "timestamp": {
+          "min_iso": "1996-01-01T00:00:00Z",
+          "max_iso": "2023-12-31T23:59:59Z",
+          "unit": "ms"
+        },
+        "text": {
+          "strip_html": true,
+          "normalise_whitespace": true,
+          "unescape_entities": true,
+          "lowercase": false,
+          "min_length_chars": 0
+        },
+        "duplicates": {
+          "exact_keys": [
+            "user_id",
+            "item_id",
+            "timestamp"
+          ],
+          "flag_repeated_text_by_user": true
+        },
+        "outliers": {
+          "action": "flag",
+          "flag_column": "outlier_flag"
+        }
+      },
+      "paths": {
+        "raw": "data/raw",
+        "interim": "data/interim",
+        "processed": "data/processed",
+        "embeddings": "data/embeddings",
+        "reports": "reports",
+        "figures": "reports/figures",
+        "tables": "reports/tables",
+        "results": "reports/results"
+      },
+      "split": {
+        "strategy": "global_temporal",
+        "train_frac": 0.8,
+        "val_frac": 0.1,
+        "test_frac": 0.1,
+        "enforce_no_future_edges": true
+      }
+    },
+    "model": {
+      "device": "auto",
+      "seed": 42,
+      "sbert": {
+        "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+        "embedding_dimension": 384,
+        "max_seq_length": 256,
+        "batch_size": 256,
+        "normalize_embeddings": true,
+        "cache": true,
+        "cache_format": "npy",
+        "cache_dir": "data/embeddings",
+        "device": "auto",
+        "text_fields": [
+          "review_title",
+          "review_text"
+        ],
+        "join_with": ". ",
+        "empty_text_policy": "zero_vector"
+      },
+      "sentiment": {
+        "backend": "transformer",
+        "model_name": "nlptown/bert-base-multilingual-uncased-sentiment",
+        "outputs": [
+          "pos",
+          "neg",
+          "neu",
+          "compound"
+        ],
+        "device": "auto",
+        "batch_size": 64,
+        "max_length": 256
+      },
+      "fusion": {
+        "output_dimension": 128,
+        "hidden_dimension": 256,
+        "dropout": 0.2,
+        "activation": "gelu",
+        "layer_norm": true,
+        "structured_features": [
+          "sentiment_compound",
+          "review_length_log",
+          "helpful_votes_log",
+          "verified_purchase_f",
+          "recency_weight",
+          "rating_centred"
+        ],
+        "mode": "mlp"
+      },
+      "graph": {
+        "node_types": [
+          "user",
+          "product",
+          "review",
+          "brand",
+          "category"
+        ],
+        "edge_types": [
+          [
+            "user",
+            "wrote",
+            "review"
+          ],
+          [
+            "review",
+            "about",
+            "product"
+          ],
+          [
+            "user",
+            "purchased",
+            "product"
+          ],
+          [
+            "product",
+            "belongs_to",
+            "category"
+          ],
+          [
+            "product",
+            "manufactured_by",
+            "brand"
+          ]
+        ],
+        "add_reverse_edges": true,
+        "include_review_nodes": true
+      },
+      "cola": {
+        "projection": "user_product_bipartite",
+        "hidden_dimension": 64,
+        "num_layers": 1,
+        "dropout": 0.1,
+        "subgraph_size": 4,
+        "negative_ratio": 1,
+        "epochs": 100,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0,
+        "eval_rounds": 32,
+        "has_ground_truth_labels": false
+      },
+      "trust": {
+        "normalisation": "rank",
+        "transform": "one_minus",
+        "floor": 0.05,
+        "ceiling": 1.0,
+        "scored_entity": "user",
+        "propagate_to": "interaction",
+        "aggregation": "mean"
+      },
+      "temporal": {
+        "enabled": true,
+        "decay": "exponential",
+        "lambda_per_year": 0.5,
+        "reference": "max_train_timestamp",
+        "min_weight": 0.01,
+        "snapshots": {
+          "enabled": true,
+          "granularity": "year"
+        }
+      },
+      "edge_weighting": {
+        "base": 1.0,
+        "trust_exponent": 1.0,
+        "temporal_exponent": 1.0,
+        "use_trust": true,
+        "use_temporal": true
+      },
+      "hgt": {
+        "hidden_channels": 128,
+        "num_heads": 4,
+        "num_layers": 2,
+        "dropout": 0.2,
+        "use_norm": true,
+        "output_dimension": 128
+      },
+      "scoring": {
+        "head": "dot",
+        "mlp_hidden": [
+          128,
+          64
+        ],
+        "subtract_popularity_bias": false
+      },
+      "confidence": {
+        "method": "mc_dropout",
+        "mc_samples": 20,
+        "components": {
+          "predictive_stability": 0.5,
+          "evidence_volume": 0.3,
+          "evidence_trust": 0.2
+        },
+        "cold_start_penalty": true
+      },
+      "cold_start": {
+        "min_interactions_for_personalised": 3,
+        "new_user_strategy": "popularity_within_preferred_category",
+        "new_item_strategy": "content_similarity",
+        "report_separately": true
+      },
+      "explainability": {
+        "max_paths": 5,
+        "max_path_length": 3,
+        "evidence_sources": [
+          "shared_category",
+          "shared_brand",
+          "similar_trusted_users",
+          "recent_interaction",
+          "semantic_similarity",
+          "review_sentiment"
+        ],
+        "require_evidence": true
+      },
+      "counterfactual": {
+        "top_k": 5,
+        "search": "bisection",
+        "max_iterations": 20,
+        "perturbable_factors": [
+          "category_affinity",
+          "brand_affinity",
+          "recency_weight",
+          "trust_weight",
+          "semantic_similarity"
+        ],
+        "report_infeasible": true
+      }
+    }
+  },
+  "phase": "3-5-features-and-graph",
+  "split_stats": {
+    "strategy": "global_temporal",
+    "n_train": 115342,
+    "n_val": 14418,
+    "n_test": 14418,
+    "val_cutoff": "2019-02-02 00:44:47.766600098+00:00",
+    "test_cutoff": "2020-07-27 19:01:45.410800049+00:00",
+    "test_users_unseen_in_train": 6101,
+    "test_items_unseen_in_train": 8603,
+    "test_cold_user_share": 0.42315161603551116,
+    "test_cold_item_share": 0.5966846996809544
+  },
+  "graph_metadata": {
+    "n_train_interactions": 115342,
+    "seller_node": "ABSENT - no seller field exists in Amazon Reviews 2023",
+    "brand_node": "PROXY - derived from the `store` (storefront) field",
+    "review_sbert_dim": 384,
+    "review_structured_dim": 6,
+    "review_structured_columns": [
+      "sentiment_compound",
+      "review_length_log",
+      "helpful_votes_log",
+      "verified_purchase_f",
+      "recency_weight",
+      "rating_centred"
+    ],
+    "node_counts": {
+      "user": 15704,
+      "product": 6619,
+      "review": 115342,
+      "category": 37,
+      "brand": 778
+    },
+    "edge_counts": {
+      "user__purchased__product": 115342,
+      "user__wrote__review": 115342,
+      "review__about__product": 115342,
+      "product__belongs_to__category": 6619,
+      "product__manufactured_by__brand": 6608,
+      "product__rev_purchased__user": 115342,
+      "review__rev_wrote__user": 115342,
+      "product__rev_about__review": 115342,
+      "category__rev_belongs_to__product": 6619,
+      "brand__rev_manufactured_by__product": 6608
+    },
+    "user_scaler": {
+      "fitted_scope": "TRAIN SPLIT ONLY (graph build)",
+      "n_columns": 20,
+      "columns": [
+        "n_interactions",
+        "n_distinct_items",
+        "mean_rating",
+        "rating_std",
+        "median_rating",
+        "rating_entropy",
+        "frac_five_star",
+        "frac_one_star",
+        "span_days",
+        "active_days",
+        "reviews_per_active_day",
+        "median_gap_hours",
+        "min_gap_hours",
+        "mean_review_length",
+        "median_review_length",
+        "frac_duplicate_text",
+        "total_helpful_votes",
+        "mean_helpful_votes",
+        "frac_verified",
+        "frac_flagged"
+      ],
+      "log_columns": [
+        "active_days",
+        "frac_duplicate_text",
+        "frac_one_star",
+        "mean_helpful_votes",
+        "mean_review_length",
+        "median_gap_hours",
+        "median_rating",
+        "median_review_length",
+        "min_gap_hours",
+        "n_distinct_items",
+        "n_interactions",
+        "reviews_per_active_day",
+        "total_helpful_votes"
+      ],
+      "clip_sigma": 8.0
+    },
+    "product_scaler": {
+      "fitted_scope": "TRAIN SPLIT ONLY (graph build)",
+      "n_columns": 18,
+      "columns": [
+        "n_interactions",
+        "n_distinct_users",
+        "mean_rating",
+        "rating_std",
+        "median_rating",
+        "frac_five_star",
+        "frac_one_star",
+        "span_days",
+        "mean_review_length",
+        "total_helpful_votes",
+        "frac_verified",
+        "frac_flagged",
+        "popularity_rank",
+        "popularity_percentile",
+        "price",
+        "avg_rating_meta",
+        "rating_count_meta",
+        "category_depth"
+      ],
+      "log_columns": [
+        "frac_one_star",
+        "mean_review_length",
+        "median_rating",
+        "n_distinct_users",
+        "n_interactions",
+        "price",
+        "rating_count_meta",
+        "total_helpful_votes"
+      ],
+      "clip_sigma": 8.0
+    },
+    "split_stats": {
+      "strategy": "global_temporal",
+      "n_train": 115342,
+      "n_val": 14418,
+      "n_test": 14418,
+      "val_cutoff": "2019-02-02 00:44:47.766600098+00:00",
+      "test_cutoff": "2020-07-27 19:01:45.410800049+00:00",
+      "test_users_unseen_in_train": 6101,
+      "test_items_unseen_in_train": 8603,
+      "test_cold_user_share": 0.42315161603551116,
+      "test_cold_item_share": 0.5966846996809544
+    },
+    "review_feature_builder": {
+      "fitted_scope": "TRAIN SPLIT ONLY",
+      "lambda_per_year": 0.5,
+      "min_weight": 0.01,
+      "n_item_means": 6619,
+      "global_mean_rating": 4.297983169555664,
+      "reference_timestamp": 1549066932984
+    },
+    "sbert_enabled": true
+  }
+}

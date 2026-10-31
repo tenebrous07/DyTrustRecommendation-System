@@ -1,0 +1,145 @@
+{
+  "best_baseline": "lightgcn",
+  "comparisons": {
+    "I_dytrustrec_cosine+ens3": {
+      "vs_lightgcn": {
+        "mean_diff": 0.015965361948937027,
+        "ci_low": 0.012236902244157294,
+        "ci_high": 0.01978664196232993,
+        "p_a_better": 1.0
+      },
+      "vs_matrix_factorization": {
+        "mean_diff": 0.016740840789643937,
+        "ci_low": 0.012937439580967935,
+        "ci_high": 0.020568963182047657,
+        "p_a_better": 1.0
+      }
+    },
+    "E_hgt_sbert_trust_recency+ens3": {
+      "vs_lightgcn": {
+        "mean_diff": 0.01595944248709817,
+        "ci_low": 0.012260032991752875,
+        "ci_high": 0.019698682877610285,
+        "p_a_better": 1.0
+      },
+      "vs_matrix_factorization": {
+        "mean_diff": 0.01673492132780508,
+        "ci_low": 0.012649225704603301,
+        "ci_high": 0.020644830677001347,
+        "p_a_better": 1.0
+      }
+    },
+    "D_hgt_sbert_recency+ens3": {
+      "vs_lightgcn": {
+        "mean_diff": 0.015638006464374667,
+        "ci_low": 0.011930269320754541,
+        "ci_high": 0.01935810835350559,
+        "p_a_better": 1.0
+      },
+      "vs_matrix_factorization": {
+        "mean_diff": 0.016413485305081577,
+        "ci_low": 0.012512895064361934,
+        "ci_high": 0.020393708359119647,
+        "p_a_better": 1.0
+      }
+    },
+    "F_dytrustrec_full+ens3": {
+      "vs_lightgcn": {
+        "mean_diff": 0.014276500879122878,
+        "ci_low": 0.010756731067079698,
+        "ci_high": 0.0178346089012068,
+        "p_a_better": 1.0
+      },
+      "vs_matrix_factorization": {
+        "mean_diff": 0.015051979719829788,
+        "ci_low": 0.011278386674050187,
+        "ci_high": 0.018877405150669015,
+        "p_a_better": 1.0
+      }
+    },
+    "I_dytrustrec_cosine": {
+      "vs_lightgcn": {
+        "mean_diff": 0.014170323493158029,
+        "ci_low": 0.010985423809375509,
+        "ci_high": 0.017477629054041106,
+        "p_a_better": 1.0
+      },
+      "vs_matrix_factorization": {
+        "mean_diff": 0.014945802333864937,
+        "ci_low": 0.011532226657000667,
+        "ci_high": 0.01844139538022105,
+        "p_a_better": 1.0
+      }
+    },
+    "D_hgt_sbert_recency": {
+      "vs_lightgcn": {
+        "mean_diff": 0.013364377171904812,
+        "ci_low": 0.010146752552193659,
+        "ci_high": 0.01656754647877989,
+        "p_a_better": 1.0
+      },
+      "vs_matrix_factorization": {
+        "mean_diff": 0.01413985601261172,
+        "ci_low": 0.010744340499145216,
+        "ci_high": 0.017482995330563522,
+        "p_a_better": 1.0
+      }
+    },
+    "E_hgt_sbert_trust_recency": {
+      "vs_lightgcn": {
+        "mean_diff": 0.012914154653627453,
+        "ci_low": 0.009766076711636663,
+        "ci_high": 0.016177087196018586,
+        "p_a_better": 1.0
+      },
+      "vs_matrix_factorization": {
+        "mean_diff": 0.01368963349433436,
+        "ci_low": 0.010257475619833067,
+        "ci_high": 0.017072747124791055,
+        "p_a_better": 1.0
+      }
+    },
+    "F_dytrustrec_full": {
+      "vs_lightgcn": {
+        "mean_diff": 0.009417248242185644,
+        "ci_low": 0.006545751710257939,
+        "ci_high": 0.012248095544616642,
+        "p_a_better": 1.0
+      },
+      "vs_matrix_factorization": {
+        "mean_diff": 0.01019272708289255,
+        "ci_low": 0.00711268129162706,
+        "ci_high": 0.01321593904732572,
+        "p_a_better": 1.0
+      }
+    },
+    "B_hgt_sbert+ens3": {
+      "vs_lightgcn": {
+        "mean_diff": 0.005178584377395553,
+        "ci_low": 0.0028648543776284975,
+        "ci_high": 0.007474532742519062,
+        "p_a_better": 1.0
+      },
+      "vs_matrix_factorization": {
+        "mean_diff": 0.005954063218102463,
+        "ci_low": 0.003941620577282191,
+        "ci_high": 0.008117881900977137,
+        "p_a_better": 1.0
+      }
+    },
+    "B_hgt_sbert": {
+      "vs_lightgcn": {
+        "mean_diff": 0.004131617782254952,
+        "ci_low": 0.0021625018014450434,
+        "ci_high": 0.006135354421759174,
+        "p_a_better": 1.0
+      },
+      "vs_matrix_factorization": {
+        "mean_diff": 0.004907096622961861,
+        "ci_low": 0.0031660185758905016,
+        "ci_high": 0.006737062390194134,
+        "p_a_better": 1.0
+      }
+    }
+  }
+}

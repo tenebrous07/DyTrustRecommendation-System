@@ -1,0 +1,68 @@
+# =============================================================================
+# DyTrustRec - pinned dependencies
+# =============================================================================
+# These are the versions this project was actually resolved, installed and
+# tested against on 2026-08-24. They are not aspirational pins.
+#
+# Verified target platform:
+#   macOS 26.3.1, Apple M4 (arm64), Python 3.12.14
+#   No CUDA. PyTorch MPS backend available and exercised (HGTConv forward and
+#   backward both verified on mps).
+#
+# Install:
+#   uv venv --python 3.12 .venv
+#   uv pip install -r requirements.txt
+#   uv pip install -r requirements-pyg.txt   # see that file: separate index
+# -----------------------------------------------------------------------------
+
+# --- Core numerics -----------------------------------------------------------
+numpy==2.5.2
+pandas==3.0.5
+scipy==1.18.1
+scikit-learn==1.9.0
+pyarrow==25.0.1
+
+# --- Deep learning -----------------------------------------------------------
+torch==2.13.0
+torchvision==0.28.0
+
+# --- Graph -------------------------------------------------------------------
+# torch_geometric >= 2.3 is pure Python for the layers we use; torch-scatter and
+# torch-sparse are deliberately NOT required (no arm64 macOS wheels exist for
+# them at this torch version). See requirements-pyg.txt for the one compiled
+# extension we do install.
+torch-geometric==2.8.0.post1
+networkx==3.6.1
+
+# --- NLP ---------------------------------------------------------------------
+sentence-transformers==6.0.0
+transformers==5.15.1
+nltk==3.10.3
+
+# --- Visualisation and app ---------------------------------------------------
+matplotlib==3.11.1
+plotly==6.9.0
+streamlit==1.62.0
+
+# --- Storage and config ------------------------------------------------------
+SQLAlchemy==2.0.52
+PyYAML==6.0.3
+requests==2.34.2
+tqdm==4.70.0
+
+# --- Testing -----------------------------------------------------------------
+pytest==9.1.1
+pytest-cov==7.1.0
+
+# -----------------------------------------------------------------------------
+# Deliberately NOT included
+# -----------------------------------------------------------------------------
+# spacy      - listed in the original brief, but nothing in the current design
+#              needs it: the sentiment transformer and SBERT cover semantics
+#              between them, and the tokenisation we do is trivial. Adding a
+#              ~500 MB model dependency that no module imports would be dead
+#              weight. Revisit only if aspect extraction or NER is implemented.
+# fastapi    - Streamlit calls the src/ services directly. A second HTTP hop
+#              between two processes on one machine would add deployment
+#              surface and no capability. Revisit if the dashboard is ever
+#              split from the model host.

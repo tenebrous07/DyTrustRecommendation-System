@@ -1,0 +1,40 @@
+{
+  "serving": [
+    {
+      "setting": "this catalogue (real embeddings)",
+      "items": 6619,
+      "ms_per_user_single": 0.07875041602528654,
+      "ms_per_user_batch256": 0.051714500004891306
+    },
+    {
+      "setting": "synthetic catalogue (random vectors)",
+      "items": 100000,
+      "ms_per_user_single": 1.5520164159825072,
+      "ms_per_user_batch256": 0.6874870819738135
+    },
+    {
+      "setting": "synthetic catalogue (random vectors)",
+      "items": 1000000,
+      "ms_per_user_single": 16.351223749952624,
+      "ms_per_user_batch256": 8.389197079959558
+    }
+  ],
+  "embedding_bytes_per_user": 512,
+  "mean_train_seconds": {
+    "A_hgt_only": 274.0,
+    "B_hgt_sbert": 376.93333333333334,
+    "C_hgt_sbert_trust": 341.5666666666666,
+    "D_hgt_sbert_recency": 229.4666666666667,
+    "E_hgt_sbert_trust_recency": 210.9,
+    "F_dytrustrec_full": 213.63333333333333,
+    "G_dytrustrec_cola_trust": 299.85,
+    "H_hgt_sbert_unmasked": 111.43333333333334,
+    "I_dytrustrec_cosine": 500.90000000000003,
+    "item_knn_cf": 0.9,
+    "lightgcn": 12.42,
+    "matrix_factorization": 17.44,
+    "popularity": 0.2,
+    "sasrec": 30.6
+  },
+  "hardware": "Apple M3 Pro, 12 cores, 18 GB, CPU numpy for serving"
+}

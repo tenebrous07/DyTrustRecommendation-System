@@ -1,0 +1,104 @@
+{
+  "calibrated": {
+    "auroc": 0.6070421470699581,
+    "brier": 0.008694109601241425,
+    "brier_constant_base_rate": 0.008679841428004046,
+    "ece": 0.00767239357381193,
+    "validation_pairs": 32980,
+    "validation_base_rate": 0.016130988477865375,
+    "weights": {
+      "score": 0.1977632849007589,
+      "log(rank)": -0.32361944663348435,
+      "stability": 0.07446193402436188,
+      "log(history)": -0.09008414219510616,
+      "trust": -0.05261324159158422
+    },
+    "reliability": [
+      {
+        "p_bin": 0,
+        "pairs": 3724,
+        "mean_predicted": 0.008676051949150105,
+        "observed": 0.005907626208378088
+      },
+      {
+        "p_bin": 1,
+        "pairs": 3724,
+        "mean_predicted": 0.01105797491876674,
+        "observed": 0.005907626208378088
+      },
+      {
+        "p_bin": 2,
+        "pairs": 3724,
+        "mean_predicted": 0.01362271446063253,
+        "observed": 0.006981740064446832
+      },
+      {
+        "p_bin": 3,
+        "pairs": 3724,
+        "mean_predicted": 0.01800850634639663,
+        "observed": 0.008592910848549946
+      },
+      {
+        "p_bin": 4,
+        "pairs": 3724,
+        "mean_predicted": 0.030498331364897744,
+        "observed": 0.01611170784103115
+      }
+    ]
+  },
+  "explanation": {
+    "pairs_with_evidence": 0.8364124597207304,
+    "hit_rate_supported": 0.00809040708873764,
+    "hit_rate_unsupported": 0.011818778726198293,
+    "mean_evidence_items": 1.8357142857142856
+  },
+  "arm": "E_hgt_sbert_trust_recency",
+  "members": 3,
+  "pairs": 18620,
+  "users": 1862,
+  "base_hit_rate": 0.00870032223415682,
+  "auroc": {
+    "confidence": 0.4560336513058007,
+    "stability": 0.4702056320053936,
+    "volume": 0.4578071136473997,
+    "trust": 0.5066015739436478,
+    "score": 0.5564237260701306
+  },
+  "reliability": [
+    {
+      "bin": 0,
+      "pairs": 3724,
+      "hit_rate": 0.01342642320085929,
+      "mean_confidence": 0.2827906791347699
+    },
+    {
+      "bin": 1,
+      "pairs": 3724,
+      "hit_rate": 0.007250268528464017,
+      "mean_confidence": 0.4384816873313802
+    },
+    {
+      "bin": 2,
+      "pairs": 3724,
+      "hit_rate": 0.007518796992481203,
+      "mean_confidence": 0.5992981262151376
+    },
+    {
+      "bin": 3,
+      "pairs": 3724,
+      "hit_rate": 0.005907626208378088,
+      "mean_confidence": 0.6580461707224927
+    },
+    {
+      "bin": 4,
+      "pairs": 3724,
+      "hit_rate": 0.009398496240601503,
+      "mean_confidence": 0.7527891692412839
+    }
+  ],
+  "cold_start": {
+    "cold_pairs": 5340,
+    "mean_confidence_cold": 0.2922211114265347,
+    "mean_confidence_warm": 0.6484408573608827
+  }
+}

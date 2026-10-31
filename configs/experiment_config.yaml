@@ -1,0 +1,144 @@
+# =============================================================================
+# DyTrustRec - Experiment Configuration
+# =============================================================================
+# Defines the comparison grid. Every model in `baselines` and `ablations` is
+# trained and evaluated on the SAME chronological split, with the same seed and
+# the same metric code, or the comparison is meaningless.
+#
+# NO RESULTS ARE RECORDED IN THIS FILE. Results live in reports/results/ and are
+# written only by scripts/run_experiments.py after an actual run.
+# =============================================================================
+
+seed: 42
+# The run whose embeddings the dashboard serves (scripts/export_model.py): the best
+# variant in the tuning-protocol grid, at the configured seed.
+serve_arm: E_hgt_sbert_trust_recency
+# The ablation arm whose seed-42 weights are saved to checkpoints/best_model.pt (used by the
+# explanation-fidelity test, which has to re-run the model on an edited graph).
+export_arm: E
+k_values: [5, 10, 20]
+primary_metric: "ndcg@10"
+
+# -----------------------------------------------------------------------------
+# MODULE 19 - Metrics
+# -----------------------------------------------------------------------------
+metrics:
+  accuracy: [precision, recall, ndcg, map, mrr, hit_rate]
+  beyond_accuracy: [coverage, diversity, novelty]
+  # Coverage/novelty are computed over the post-k-core catalogue, not the full
+  # Amazon catalogue. Reported with that caveat attached.
+  catalogue_scope: filtered
+  diversity_basis: category     # intra-list dissimilarity over category labels
+  novelty_basis: popularity     # negative log popularity of recommended items
+
+# -----------------------------------------------------------------------------
+# MODULE 28 - Baselines. Mandatory: HGT numbers alone prove nothing.
+# -----------------------------------------------------------------------------
+baselines:
+  - name: popularity
+    module: src.models.popularity
+    params: {}
+  - name: item_knn_cf
+    module: src.models.collaborative_filtering
+    params: {similarity: cosine, k: 50}
+  - name: matrix_factorization
+    module: src.models.matrix_factorization
+    params: {embedding_dim: 64, epochs: 50}
+  - name: lightgcn
+    module: src.models.lightgcn
+    params: {embedding_dim: 64, num_layers: 3, epochs: 100}
+
+# -----------------------------------------------------------------------------
+# MODULE 29 - Ablations. This is what tests whether each component earns its keep.
+# -----------------------------------------------------------------------------
+# Every arm trains with edge masking and validation early stopping, so the arms
+# differ only in the component named. Each flag changes what the model sees or
+# optimises:
+#   sbert    review nodes carry SBERT semantics (A: a constant feature)
+#   mask     edge-masked training (default true; arm H switches it off)
+#   schedule cosine learning-rate decay over a validation-tuned epoch budget (arm I)
+#   fusion   learned Semantic-Behavioural Fusion Layer over the review features
+#   trust    none | behavioural | cola - per-user trust scales each BPR term
+#   recency  exp(-lambda * age) scales each BPR term
+#
+# The first version of this grid stored trust and recency as edge weights, which
+# HGTConv cannot read, so arms C, D and E were identical to B and their score
+# differences were seed noise. Here the weights act on the objective.
+ablations:
+  - id: A
+    name: hgt_only
+    description: HGT on the plain heterogeneous graph; review nodes carry a constant feature.
+    flags: {sbert: false, fusion: false, trust: none, recency: false}
+  - id: B
+    name: hgt_sbert
+    description: Adds SBERT review semantics and structured review features as node features.
+    flags: {sbert: true, fusion: false, trust: none, recency: false}
+  - id: C
+    name: hgt_sbert_trust
+    description: B plus behavioural-trust weighting of the training objective.
+    flags: {sbert: true, fusion: false, trust: behavioural, recency: false}
+  - id: D
+    name: hgt_sbert_recency
+    description: B plus exponential recency weighting of the training objective.
+    flags: {sbert: true, fusion: false, trust: none, recency: true}
+  - id: E
+    name: hgt_sbert_trust_recency
+    description: B plus trust and recency weighting together.
+    flags: {sbert: true, fusion: false, trust: behavioural, recency: true}
+  - id: F
+    name: dytrustrec_full
+    description: E plus the learned Semantic-Behavioural Fusion Layer.
+    flags: {sbert: true, fusion: true, trust: behavioural, recency: true}
+  - id: H
+    name: hgt_sbert_unmasked
+    description: B with edge masking switched off, so the target edge is always visible to message passing.
+    flags: {sbert: true, fusion: false, trust: none, recency: false, mask: false}
+  - id: I
+    name: dytrustrec_cosine
+    description: E with a cosine learning-rate decay over a fixed, validation-tuned epoch budget.
+    flags: {sbert: true, fusion: false, trust: behavioural, recency: true, schedule: cosine}
+  - id: G
+    name: dytrustrec_cola_trust
+    description: F with CoLA trust in place of behavioural trust (the original design; negative control).
+    flags: {sbert: true, fusion: true, trust: cola, recency: true}
+
+# -----------------------------------------------------------------------------
+# MODULE 45 - Synthetic anomaly robustness
+# -----------------------------------------------------------------------------
+# The dataset has no fraud labels. These experiments operate on a SEPARATE
+# perturbed COPY; the original processed data is never modified. Results are
+# labelled "synthetic" in every table and must never be described as detected
+# Amazon fraud.
+synthetic_anomaly:
+  enabled: true
+  output_suffix: _synthetic
+  injection_rate: 0.05          # fraction of users converted to shills
+  patterns:
+    burst_reviews:
+      enabled: true
+      reviews_per_burst: 15
+      window_minutes: 30
+    extreme_rating:
+      enabled: true
+      forced_rating: 5.0
+    duplicated_text:
+      enabled: true
+      template_pool_size: 5
+    coordinated_targeting:
+      enabled: true
+      shills_per_target: 10
+  # With injected anomalies we DO have labels - for the injected rows only.
+  # AUC/AP are therefore reported for the synthetic setting alone.
+  evaluate: [roc_auc, average_precision, precision_at_100]
+
+# -----------------------------------------------------------------------------
+# Runtime
+# -----------------------------------------------------------------------------
+runtime:
+  repeat_seeds: [42, 43, 44, 45, 46]
+  # A single seed cannot separate a real improvement from run-to-run noise.
+  # Mean and standard deviation across seeds are reported for every model.
+  report_mean_std: true
+  save_predictions: true
+  results_dir: reports/results
+  tables_dir: reports/tables

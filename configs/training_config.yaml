@@ -1,0 +1,126 @@
+# =============================================================================
+# DyTrustRec - Training Configuration
+# =============================================================================
+seed: 42
+device: auto
+
+# -----------------------------------------------------------------------------
+# MODULE 20 - Objective
+# -----------------------------------------------------------------------------
+loss:
+  # BPR is the primary objective. Rationale, recorded here so the choice can be
+  # defended rather than assumed: the signal is implicit (a review means
+  # interaction, not a graded preference we can trust), BPR optimises pairwise
+  # ranking which is what the metrics measure, and it is the standard baseline
+  # objective for LightGCN and MF, so all models are trained on like terms.
+  primary: bpr                  # bpr | sampled_bce
+  bpr:
+    reduction: mean
+  sampled_bce:
+    pos_weight: 1.0
+
+  # ---------------------------------------------------------------------------
+  # Research extension (Module 31): weight each interaction's loss by its trust.
+  #   weighted_loss_e = trust_e * loss_e
+  # Off by default so the headline HGT numbers are the plain ones. Enabled by
+  # the ablation runner as experiment 9.
+  # ---------------------------------------------------------------------------
+  trust_weighted:
+    enabled: false
+    # Renormalise so the mean weight is 1. Without this, trust weighting also
+    # shrinks the effective learning rate, and any gain could be a tuning
+    # artefact rather than an effect of trust.
+    normalise_mean_to_one: true
+
+# -----------------------------------------------------------------------------
+# MODULE 21 - Negative sampling
+# -----------------------------------------------------------------------------
+negative_sampling:
+  num_negatives: 1
+  strategy: uniform             # uniform | popularity | hard
+  # Leakage guard: a "negative" must not be an item the user interacts with in
+  # ANY split. Sampling from train-only positives would put val/test items in
+  # the negative pool and quietly inflate the metrics.
+  exclude_all_split_positives: true
+  max_resample_attempts: 20
+  seed: 42
+
+# -----------------------------------------------------------------------------
+# Optimisation
+# -----------------------------------------------------------------------------
+optimizer:
+  name: adamw
+  # HGT trains full-graph: one optimiser step per epoch, so the gradient is
+  # low-variance and the step budget is small, which is why the rate is high.
+  # 0.01 was selected on validation (0.005 and 0.002 were within noise of it).
+  # The baselines mini-batch and keep their own rates, tuned the same way.
+  learning_rate: 0.01
+  weight_decay: 0.0001
+  betas: [0.9, 0.999]
+
+scheduler:
+  name: none                    # none | cosine | plateau
+  warmup_epochs: 0
+
+# -----------------------------------------------------------------------------
+# Loop
+# -----------------------------------------------------------------------------
+training:
+  max_epochs: 300               # upper bound; validation early stopping ends runs sooner
+  batch_size: 4096              # edges per step for LinkNeighborLoader
+  eval_every: 5                 # epochs between validation NDCG@10 measurements
+  gradient_clip_norm: 1.0
+  num_workers: 0                # >0 is unreliable with MPS tensors in workers
+
+  # Mini-batch neighbour sampling. Available because pyg-lib is installed;
+  # without it PyG cannot sample and this must be set to full_batch: true.
+  # Switched to full_batch: on this machine, mini-batch falls back from MPS to
+  # CPU (no MPS kernel for the sampler's CSR indices) and re-samples a fresh
+  # subgraph every one of 57 steps/epoch, which measurably degrades over a long
+  # run (epoch time crept from ~12min to ~90min across a single ablation - see
+  # reports/results/experiments.log, 2026-09-09). full_batch does one forward/
+  # backward pass over the whole graph per epoch, stays on MPS, and has flat,
+  # bounded memory instead of growing with wall-clock time.
+  full_batch: true
+  num_neighbors: [15, 10]       # fan-out per HGT layer, unused when full_batch
+
+  # Edge-masked training. The interaction being scored is also a message-passing
+  # edge, so an unmasked HGT can read the label off the graph: train loss fell
+  # 0.30 -> 0.04 while held-out NDCG stalled and coverage rose to 0.62
+  # (memorisation). Each epoch a random share of interaction rows is hidden from
+  # message passing and those hidden rows are the supervision targets.
+  # Evaluation always uses the full graph.
+  edge_mask:
+    enabled: true
+    keep_prob: 0.5              # share of interaction rows left visible per epoch; 0.25-0.8 were
+                                # within noise on validation, 0.9 was worse
+
+early_stopping:
+  enabled: true
+  monitor: val_ndcg@10
+  mode: max
+  patience: 8                   # in evaluations, i.e. 8 * eval_every epochs
+  min_delta: 0.0001
+
+# -----------------------------------------------------------------------------
+# MODULE 38 - Checkpointing
+# -----------------------------------------------------------------------------
+checkpointing:
+  directory: checkpoints
+  save_best: true
+  best_filename: best_model.pt
+  save_last: false
+  history_filename: training_history.json
+  # The config is saved next to the weights. A checkpoint whose hyperparameters
+  # are unknown is not reproducible and is therefore not a checkpoint.
+  save_config_alongside: true
+
+# -----------------------------------------------------------------------------
+# MODULE 37 - Logging
+# -----------------------------------------------------------------------------
+logging:
+  level: INFO
+  log_every_n_steps: 50
+  # Printed each epoch: epoch, train loss, val loss, P@K, R@K, NDCG@K.
+  progress_metrics: [train_loss, val_loss, "val_precision@10",
+                     "val_recall@10", "val_ndcg@10"]

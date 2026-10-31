@@ -1,0 +1,135 @@
+{
+  "label": "SYNTHETIC - scripted shills added to a copy of the training split",
+  "summary": {
+    "0.0": {
+      "gate_v2": {
+        "n_seeds": 2,
+        "ndcg@10": {
+          "mean": 0.026606391436201735,
+          "std": 0.00036738843089091823
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.0,
+          "std": 0.0
+        },
+        "rows_gated": {
+          "mean": 4897.0
+        },
+        "targets_per_list": {
+          "mean": 0.0,
+          "std": 0.0
+        }
+      },
+      "none": {
+        "n_seeds": 3,
+        "ndcg@10": {
+          "mean": 0.02780016066096208,
+          "std": 0.0017654812905144458
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.0,
+          "std": 0.0
+        },
+        "rows_gated": {
+          "mean": 0.0
+        },
+        "targets_per_list": {
+          "mean": 0.0,
+          "std": 0.0
+        }
+      }
+    },
+    "0.2": {
+      "gate_v2": {
+        "n_seeds": 4,
+        "ndcg@10": {
+          "mean": 0.026637751838137647,
+          "std": 0.0017757453037205797
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.009398496240601503,
+          "std": 0.00491243205657438
+        },
+        "rows_gated": {
+          "mean": 52035.0
+        },
+        "targets_per_list": {
+          "mean": 0.010741138560687433,
+          "std": 0.005529339495696563
+        }
+      },
+      "none": {
+        "n_seeds": 4,
+        "ndcg@10": {
+          "mean": 0.02461811518366159,
+          "std": 0.0016771543800807608
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.015440386680988183,
+          "std": 0.009479980257662236
+        },
+        "rows_gated": {
+          "mean": 0.0
+        },
+        "targets_per_list": {
+          "mean": 0.01852846401718582,
+          "std": 0.01114959156392411
+        }
+      },
+      "oracle": {
+        "n_seeds": 2,
+        "ndcg@10": {
+          "mean": 0.023622973892988355,
+          "std": 0.002901258325195708
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.0026852846401718583,
+          "std": 0.0037975659569631985
+        },
+        "rows_gated": {
+          "mean": 0.0
+        },
+        "targets_per_list": {
+          "mean": 0.0026852846401718583,
+          "std": 0.0037975659569631985
+        }
+      },
+      "oracle_gate": {
+        "n_seeds": 4,
+        "ndcg@10": {
+          "mean": 0.026904651817703237,
+          "std": 0.001367777460949325
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.002819548872180451,
+          "std": 0.00220890846388347
+        },
+        "rows_gated": {
+          "mean": 47115.0
+        },
+        "targets_per_list": {
+          "mean": 0.0030880773361976373,
+          "std": 0.0025709643065422614
+        }
+      },
+      "trust+gate": {
+        "n_seeds": 4,
+        "ndcg@10": {
+          "mean": 0.023505589616052574,
+          "std": 0.0032713159675800104
+        },
+        "users_with_target_in_top10": {
+          "mean": 0.013694951664876477,
+          "std": 0.02029241489273463
+        },
+        "rows_gated": {
+          "mean": 262.0
+        },
+        "targets_per_list": {
+          "mean": 0.015440386680988185,
+          "std": 0.021524193799518525
+        }
+      }
+    }
+  }
+}

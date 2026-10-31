@@ -1,0 +1,12 @@
+# PyTorch Geometric compiled extension, served from PyG's own wheel index.
+#
+#   uv pip install -r requirements-pyg.txt -f https://data.pyg.org/whl/torch-2.13.0+cpu.html
+#
+# pyg-lib supplies the neighbour-sampling kernels behind NeighborLoader and
+# LinkNeighborLoader. Without it PyG raises
+#   ImportError: 'NeighborSampler' requires either 'pyg-lib' or 'torch-sparse'
+# and mini-batch training on the heterogeneous graph is impossible.
+#
+# The wheel below is cp310-abi3, so it is valid for Python 3.10+ including 3.12.
+# Verified installed and working on macOS arm64 with torch 2.13.0.
+pyg-lib==0.8.0+pt213

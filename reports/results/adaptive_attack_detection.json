@@ -1,0 +1,56 @@
+{
+  "label": "SYNTHETIC",
+  "rate": 0.1,
+  "attacks": {
+    "standard (templates, 30-minute bursts)": {
+      "shills": 1570,
+      "users": 17274,
+      "seconds": 53.4,
+      "auc": {
+        "version 1 (mean of ranks)": 0.9997018894127343,
+        "version 2 (mean of ranks)": 0.9997018894127343,
+        "version 2 (strongest indicator)": 0.989665499641456,
+        "indicator: shared_text": 0.9997134488028528,
+        "indicator: own_repeat": 0.9892630300690156,
+        "indicator: burstiness": 0.9195427916454406,
+        "indicator: burst_7d": 0.9142256749872644,
+        "indicator: semantic_shared": 0.9937595517065716
+      },
+      "average_precision": {
+        "version 1 (mean of ranks)": 0.9938681757630797,
+        "version 2 (mean of ranks)": 0.9938681757630797,
+        "version 2 (strongest indicator)": 0.8326312370132659,
+        "indicator: shared_text": 0.9943001899936669,
+        "indicator: own_repeat": 0.8231677739879552,
+        "indicator: burstiness": 0.3832072247986332,
+        "indicator: burst_7d": 0.3681988742964353,
+        "indicator: semantic_shared": 0.8890147225368064
+      }
+    },
+    "adaptive (paraphrased, spread over 30 days)": {
+      "shills": 1570,
+      "users": 17274,
+      "seconds": 242.3,
+      "auc": {
+        "version 1 (mean of ranks)": 0.5189765032074266,
+        "version 2 (mean of ranks)": 0.7273348751261394,
+        "version 2 (strongest indicator)": 0.9444755443864357,
+        "indicator: shared_text": 0.8735654999659302,
+        "indicator: own_repeat": 0.46425666226463463,
+        "indicator: burstiness": 0.12933093844401689,
+        "indicator: burst_7d": 0.44926758081838863,
+        "indicator: semantic_shared": 0.9936549088065518
+      },
+      "average_precision": {
+        "version 1 (mean of ranks)": 0.09815728658976995,
+        "version 2 (mean of ranks)": 0.14611333829445833,
+        "version 2 (strongest indicator)": 0.5285285848467388,
+        "indicator: shared_text": 0.6102830333301604,
+        "indicator: own_repeat": 0.09083074855090133,
+        "indicator: burstiness": 0.0714879683789701,
+        "indicator: burst_7d": 0.09282841432611053,
+        "indicator: semantic_shared": 0.8873696801236327
+      }
+    }
+  }
+}

@@ -1,0 +1,58 @@
+# --- Data: never commit. Raw files are 0.5-26 GB and are re-downloadable. ---
+data/raw/*
+data/interim/*
+data/processed/*
+data/embeddings/*
+!data/**/.gitkeep
+
+# --- Model artefacts ---
+checkpoints/*
+!checkpoints/.gitkeep
+*.pt
+*.pth
+*.ckpt
+
+# --- Generated reports. The code that produces them is the source of truth. ---
+reports/figures/*
+reports/results/*
+reports/tables/*
+!reports/**/.gitkeep
+
+# --- Environments ---
+.venv/
+venv/
+env/
+.python-version
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# --- Notebooks ---
+.ipynb_checkpoints/
+
+# --- Databases ---
+*.db
+*.sqlite
+*.sqlite3
+
+# --- OS / editor ---
+.DS_Store
+.idea/
+.vscode/
+
+# --- Second-dataset profile outputs and local junk ---
+data/interim_*/
+data/processed_*/
+reports/results_*/
+reports/tables_*/
+checkpoints_*/
+logs/
+node_modules/
+.DS_Store

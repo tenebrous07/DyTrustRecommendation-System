@@ -1,0 +1,35 @@
+{
+  "checkpoint": "E seed 42",
+  "tests": {
+    "shared_category": {
+      "users": 81,
+      "mean_rows_removed": 3.3703703703703702,
+      "mean_score_drop_cited": 0.3137937979714711,
+      "mean_score_drop_random": -0.12713445161687303,
+      "mean_rank_after_cited": 1.7777777777777777,
+      "mean_rank_after_random": 0.12757201646090532,
+      "share_cited_hurts_more": 0.9382716049382716,
+      "paired_gap": {
+        "mean_diff": 0.44092824958834415,
+        "ci_low": 0.3224961045973025,
+        "ci_high": 0.604065727287119,
+        "p_a_better": 1.0
+      }
+    },
+    "shared_brand": {
+      "users": 73,
+      "mean_rows_removed": 5.328767123287672,
+      "mean_score_drop_cited": 0.47528951255642743,
+      "mean_score_drop_random": -0.23874880423024405,
+      "mean_rank_after_cited": 25.767123287671232,
+      "mean_rank_after_random": 0.3515981735159817,
+      "share_cited_hurts_more": 0.9452054794520548,
+      "paired_gap": {
+        "mean_diff": 0.7140383167866714,
+        "ci_low": 0.5819286006210023,
+        "ci_high": 0.8530382577797937,
+        "p_a_better": 1.0
+      }
+    }
+  }
+}

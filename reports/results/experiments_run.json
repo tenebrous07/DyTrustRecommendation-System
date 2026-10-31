@@ -1,0 +1,884 @@
+{
+  "environment": {
+    "timestamp_utc": "2026-09-09T14:52:39+00:00",
+    "seed": 42,
+    "python": "3.12.14",
+    "git_revision": "not-a-git-repository",
+    "hardware": {
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "machine": "arm64",
+      "processor": "arm",
+      "cpu_count": 12,
+      "torch_threads": 6,
+      "cuda_available": false,
+      "mps_available": true,
+      "cpu_brand": "Apple M3 Pro",
+      "memory_bytes": 19327352832
+    },
+    "packages": {
+      "torch": "2.13.0",
+      "torch_geometric": "2.8.0.post1",
+      "pyg-lib": "0.8.0+pt213",
+      "numpy": "2.5.2",
+      "pandas": "3.0.5",
+      "scipy": "1.18.1",
+      "scikit-learn": "1.9.0",
+      "networkx": "3.6.1",
+      "sentence-transformers": "6.0.0",
+      "transformers": "5.15.1",
+      "nltk": "3.10.3",
+      "pyarrow": "25.0.1",
+      "matplotlib": "3.11.1",
+      "plotly": "6.9.0",
+      "streamlit": "1.62.0"
+    }
+  },
+  "config": {
+    "seed": 42,
+    "k_values": [
+      5,
+      10,
+      20
+    ],
+    "primary_metric": "ndcg@10",
+    "metrics": {
+      "accuracy": [
+        "precision",
+        "recall",
+        "ndcg",
+        "map",
+        "mrr",
+        "hit_rate"
+      ],
+      "beyond_accuracy": [
+        "coverage",
+        "diversity",
+        "novelty"
+      ],
+      "catalogue_scope": "filtered",
+      "diversity_basis": "category",
+      "novelty_basis": "popularity"
+    },
+    "baselines": [
+      {
+        "name": "popularity",
+        "module": "src.models.popularity",
+        "params": {}
+      },
+      {
+        "name": "item_knn_cf",
+        "module": "src.models.collaborative_filtering",
+        "params": {
+          "similarity": "cosine",
+          "k": 50
+        }
+      },
+      {
+        "name": "matrix_factorization",
+        "module": "src.models.matrix_factorization",
+        "params": {
+          "embedding_dim": 64,
+          "epochs": 50
+        }
+      },
+      {
+        "name": "lightgcn",
+        "module": "src.models.lightgcn",
+        "params": {
+          "embedding_dim": 64,
+          "num_layers": 3,
+          "epochs": 100
+        }
+      }
+    ],
+    "ablations": [
+      {
+        "id": "A",
+        "name": "hgt_only",
+        "description": "HGT on the plain heterogeneous graph. Random-init node features.",
+        "flags": {
+          "sbert": false,
+          "trust": false,
+          "temporal": false,
+          "fusion": false
+        }
+      },
+      {
+        "id": "B",
+        "name": "hgt_sbert",
+        "description": "Adds SBERT review semantics as node features.",
+        "flags": {
+          "sbert": true,
+          "trust": false,
+          "temporal": false,
+          "fusion": false
+        }
+      },
+      {
+        "id": "C",
+        "name": "hgt_sbert_trust",
+        "description": "Adds CoLA-derived trust weighting on interaction edges.",
+        "flags": {
+          "sbert": true,
+          "trust": true,
+          "temporal": false,
+          "fusion": false
+        }
+      },
+      {
+        "id": "D",
+        "name": "hgt_sbert_temporal",
+        "description": "Adds exponential recency weighting on interaction edges.",
+        "flags": {
+          "sbert": true,
+          "trust": false,
+          "temporal": true,
+          "fusion": false
+        }
+      },
+      {
+        "id": "E",
+        "name": "hgt_sbert_trust_temporal",
+        "description": "Trust and recency weighting together, raw feature concatenation.",
+        "flags": {
+          "sbert": true,
+          "trust": true,
+          "temporal": true,
+          "fusion": false
+        }
+      },
+      {
+        "id": "F",
+        "name": "dytrustrec_full",
+        "description": "Adds the learned Semantic-Behavioural Feature Fusion layer.",
+        "flags": {
+          "sbert": true,
+          "trust": true,
+          "temporal": true,
+          "fusion": true
+        }
+      },
+      {
+        "id": "G",
+        "name": "dytrustrec_trust_weighted_loss",
+        "description": "Full system plus the trust-weighted training objective.",
+        "flags": {
+          "sbert": true,
+          "trust": true,
+          "temporal": true,
+          "fusion": true,
+          "trust_weighted_loss": true
+        }
+      }
+    ],
+    "synthetic_anomaly": {
+      "enabled": true,
+      "output_suffix": "_synthetic",
+      "injection_rate": 0.05,
+      "patterns": {
+        "burst_reviews": {
+          "enabled": true,
+          "reviews_per_burst": 15,
+          "window_minutes": 30
+        },
+        "extreme_rating": {
+          "enabled": true,
+          "forced_rating": 5.0
+        },
+        "duplicated_text": {
+          "enabled": true,
+          "template_pool_size": 5
+        },
+        "coordinated_targeting": {
+          "enabled": true,
+          "shills_per_target": 10
+        }
+      },
+      "evaluate": [
+        "roc_auc",
+        "average_precision",
+        "precision_at_100"
+      ]
+    },
+    "runtime": {
+      "repeat_seeds": [
+        42,
+        43,
+        44
+      ],
+      "report_mean_std": true,
+      "save_predictions": true,
+      "results_dir": "reports/results",
+      "tables_dir": "reports/tables"
+    }
+  },
+  "phase": "7-16-experiments",
+  "n_models": 11,
+  "timings_seconds": {
+    "popularity": 0.0009326670115115121,
+    "item_knn_cf": 0.3940426250046585,
+    "matrix_factorization": 2.125218125001993,
+    "lightgcn": 15.82212804199662
+  },
+  "trust_metadata": {
+    "normalisation": "rank",
+    "transform": "trust = 1 - normalised(anomaly)",
+    "floor": 0.05,
+    "ceiling": 1.0,
+    "trust_mean": 0.5012515187263489,
+    "trust_std": 0.2866605520248413,
+    "trust_min": 0.05000000074505806,
+    "trust_max": 1.0,
+    "hidden_dimension": 64,
+    "subgraph_size": 4,
+    "epochs": 100,
+    "eval_rounds": 32,
+    "n_nodes": 15704,
+    "n_isolated_nodes": 2,
+    "final_loss": 1.358289122581482
+  },
+  "results": [
+    {
+      "model": "popularity",
+      "split": "test",
+      "metrics": {
+        "precision@5": 0.0041890440386680985,
+        "recall@5": 0.01249003157450747,
+        "ndcg@5": 0.00784903644452914,
+        "map@5": 0.005155597326649958,
+        "hit_rate@5": 0.020945220193340493,
+        "precision@10": 0.004081632653061225,
+        "recall@10": 0.025656049861521524,
+        "ndcg@10": 0.012128998320432594,
+        "map@10": 0.006610659301314511,
+        "hit_rate@10": 0.03920515574650913,
+        "precision@20": 0.002900107411385607,
+        "recall@20": 0.03575453901794964,
+        "ndcg@20": 0.014803178404716413,
+        "map@20": 0.007220148782323513,
+        "hit_rate@20": 0.05370569280343716,
+        "mrr": 0.010750807050164743,
+        "coverage@5": 0.0012086417887898473,
+        "diversity@5": 0.99828141783029,
+        "novelty@5": 7.987284530577809,
+        "coverage@10": 0.002266203353980964,
+        "diversity@10": 0.7887218045112783,
+        "novelty@10": 8.211315975723178,
+        "coverage@20": 0.004381326484363197,
+        "diversity@20": 0.44629430719656293,
+        "novelty@20": 8.526738389997696
+      },
+      "diagnostics": {
+        "n_users_evaluated": 1862,
+        "n_eval_rows": 14418,
+        "cold_user_rows_excluded": 6101,
+        "cold_item_rows_excluded": 8603,
+        "catalogue_size": 6619,
+        "name": "popularity",
+        "n_users": 15704,
+        "n_items": 6619,
+        "train_seconds": 0.0
+      },
+      "notes": [
+        "Full-catalogue ranking; no sampled-negative shortcut.",
+        "Training positives are masked before ranking.",
+        "6,101 rows with an unseen user and 8,603 with an unseen item were excluded from these metrics and are the cold-start path's responsibility (Module 23).",
+        "Coverage and novelty are relative to the post-k-core catalogue, not the full Amazon catalogue."
+      ]
+    },
+    {
+      "model": "item_knn_cf",
+      "split": "test",
+      "metrics": {
+        "precision@5": 0.002255639097744361,
+        "recall@5": 0.006476650810700219,
+        "ndcg@5": 0.004571288701748255,
+        "map@5": 0.00317296216732307,
+        "hit_rate@5": 0.011278195488721804,
+        "precision@10": 0.0021482277121374865,
+        "recall@10": 0.013105091660724441,
+        "ndcg@10": 0.006842666652008986,
+        "map@10": 0.004016660131053256,
+        "hit_rate@10": 0.02040816326530612,
+        "precision@20": 0.0016648764769065525,
+        "recall@20": 0.019096938160089737,
+        "ndcg@20": 0.008610261775975002,
+        "map@20": 0.004429181608198644,
+        "hit_rate@20": 0.031149301825993556,
+        "mrr": 0.007394922735629655,
+        "coverage@5": 0.552500377700559,
+        "diversity@5": 0.4928034371643394,
+        "novelty@5": 13.444015047187495,
+        "coverage@10": 0.7612932467140051,
+        "diversity@10": 0.34183673469387754,
+        "novelty@10": 13.435910904532033,
+        "coverage@20": 0.9285390542378003,
+        "diversity@20": 0.22696025778732548,
+        "novelty@20": 13.429062721374386
+      },
+      "diagnostics": {
+        "n_users_evaluated": 1862,
+        "n_eval_rows": 14418,
+        "cold_user_rows_excluded": 6101,
+        "cold_item_rows_excluded": 8603,
+        "catalogue_size": 6619,
+        "name": "item_knn_cf",
+        "n_users": 15704,
+        "n_items": 6619,
+        "k": 50,
+        "train_seconds": 0.39
+      },
+      "notes": [
+        "Full-catalogue ranking; no sampled-negative shortcut.",
+        "Training positives are masked before ranking.",
+        "6,101 rows with an unseen user and 8,603 with an unseen item were excluded from these metrics and are the cold-start path's responsibility (Module 23).",
+        "Coverage and novelty are relative to the post-k-core catalogue, not the full Amazon catalogue."
+      ]
+    },
+    {
+      "model": "matrix_factorization",
+      "split": "test",
+      "metrics": {
+        "precision@5": 0.007303974221267454,
+        "recall@5": 0.023151514212675518,
+        "ndcg@5": 0.016285879315528714,
+        "map@5": 0.011654732068265903,
+        "hit_rate@5": 0.0359828141783029,
+        "precision@10": 0.004564983888292159,
+        "recall@10": 0.028918294609044593,
+        "ndcg@10": 0.018041526610950563,
+        "map@10": 0.0122406462585034,
+        "hit_rate@10": 0.043501611170784105,
+        "precision@20": 0.0034103114930182604,
+        "recall@20": 0.04038078394794766,
+        "ndcg@20": 0.021341270690970807,
+        "map@20": 0.013022521781120096,
+        "hit_rate@20": 0.06229860365198711,
+        "mrr": 0.02116319852631136,
+        "coverage@5": 0.04562622752681674,
+        "diversity@5": 0.5911922663802364,
+        "novelty@5": 9.059632176519967,
+        "coverage@10": 0.07010122374981115,
+        "diversity@10": 0.4272824919441461,
+        "novelty@10": 9.246727660510135,
+        "coverage@20": 0.10288563227073576,
+        "diversity@20": 0.28681525241675615,
+        "novelty@20": 9.452499881276411
+      },
+      "diagnostics": {
+        "n_users_evaluated": 1862,
+        "n_eval_rows": 14418,
+        "cold_user_rows_excluded": 6101,
+        "cold_item_rows_excluded": 8603,
+        "catalogue_size": 6619,
+        "name": "matrix_factorization",
+        "n_users": 15704,
+        "n_items": 6619,
+        "embedding_dim": 64,
+        "epochs": 50,
+        "learning_rate": 0.01,
+        "weight_decay": 1e-05,
+        "train_seconds": 2.13
+      },
+      "notes": [
+        "Full-catalogue ranking; no sampled-negative shortcut.",
+        "Training positives are masked before ranking.",
+        "6,101 rows with an unseen user and 8,603 with an unseen item were excluded from these metrics and are the cold-start path's responsibility (Module 23).",
+        "Coverage and novelty are relative to the post-k-core catalogue, not the full Amazon catalogue."
+      ]
+    },
+    {
+      "model": "lightgcn",
+      "split": "test",
+      "metrics": {
+        "precision@5": 0.002577873254564984,
+        "recall@5": 0.00693726022673391,
+        "ndcg@5": 0.0055984546207105395,
+        "map@5": 0.004133548156104548,
+        "hit_rate@5": 0.012352309344790547,
+        "precision@10": 0.0023093447905477983,
+        "recall@10": 0.012639277875898839,
+        "ndcg@10": 0.007497974780228564,
+        "map@10": 0.004743407910365483,
+        "hit_rate@10": 0.022556390977443608,
+        "precision@20": 0.0017185821697099893,
+        "recall@20": 0.018575748176272597,
+        "ndcg@20": 0.009183659570782347,
+        "map@20": 0.005138127862782475,
+        "hit_rate@20": 0.03276047261009667,
+        "mrr": 0.008933952421887763,
+        "coverage@5": 0.3066928539054238,
+        "diversity@5": 0.5613319011815251,
+        "novelty@5": 11.075191851511054,
+        "coverage@10": 0.44885934431182956,
+        "diversity@10": 0.3876476906552095,
+        "novelty@10": 11.309115798788277,
+        "coverage@20": 0.6265296872639371,
+        "diversity@20": 0.25308807733619765,
+        "novelty@20": 11.540010409656784
+      },
+      "diagnostics": {
+        "n_users_evaluated": 1862,
+        "n_eval_rows": 14418,
+        "cold_user_rows_excluded": 6101,
+        "cold_item_rows_excluded": 8603,
+        "catalogue_size": 6619,
+        "name": "lightgcn",
+        "n_users": 15704,
+        "n_items": 6619,
+        "embedding_dim": 64,
+        "num_layers": 3,
+        "epochs": 100,
+        "learning_rate": 0.05,
+        "train_seconds": 15.82
+      },
+      "notes": [
+        "Full-catalogue ranking; no sampled-negative shortcut.",
+        "Training positives are masked before ranking.",
+        "6,101 rows with an unseen user and 8,603 with an unseen item were excluded from these metrics and are the cold-start path's responsibility (Module 23).",
+        "Coverage and novelty are relative to the post-k-core catalogue, not the full Amazon catalogue."
+      ]
+    },
+    {
+      "model": "A_hgt_only",
+      "split": "test",
+      "metrics": {
+        "precision@5": 0.004403866809881847,
+        "recall@5": 0.01473029745049079,
+        "ndcg@5": 0.00999900802769756,
+        "map@5": 0.007232963360782909,
+        "hit_rate@5": 0.02201933404940924,
+        "precision@10": 0.0037593984962406013,
+        "recall@10": 0.024272241364078097,
+        "ndcg@10": 0.01330575763416104,
+        "map@10": 0.008474967890247159,
+        "hit_rate@10": 0.03544575725026853,
+        "precision@20": 0.002765843179377014,
+        "recall@20": 0.034858280290927024,
+        "ndcg@20": 0.0163369443910145,
+        "map@20": 0.009263368728508662,
+        "hit_rate@20": 0.05155746509129968,
+        "mrr": 0.013808368648511076,
+        "coverage@5": 0.192022964193987,
+        "diversity@5": 0.44285714285714295,
+        "novelty@5": 10.798503937996527,
+        "coverage@10": 0.298685602054691,
+        "diversity@10": 0.29017185821697106,
+        "novelty@10": 10.973368740451352,
+        "coverage@20": 0.44674422118144735,
+        "diversity@20": 0.18590225563909774,
+        "novelty@20": 11.136232775818733
+      },
+      "diagnostics": {
+        "n_users_evaluated": 1862,
+        "n_eval_rows": 14418,
+        "cold_user_rows_excluded": 6101,
+        "cold_item_rows_excluded": 8603,
+        "catalogue_size": 6619,
+        "name": "hgt",
+        "n_users": 15704,
+        "n_items": 6619,
+        "hidden_channels": 128,
+        "full_batch": true,
+        "batch_size": 4096,
+        "num_neighbors": [
+          15,
+          10
+        ],
+        "num_heads": 4,
+        "num_layers": 2,
+        "epochs": 100,
+        "fusion": false,
+        "trust_weighted_loss": false,
+        "train_seconds": 199.11,
+        "sbert": false,
+        "trust": false,
+        "temporal": false
+      },
+      "notes": [
+        "Full-catalogue ranking; no sampled-negative shortcut.",
+        "Training positives are masked before ranking.",
+        "6,101 rows with an unseen user and 8,603 with an unseen item were excluded from these metrics and are the cold-start path's responsibility (Module 23).",
+        "Coverage and novelty are relative to the post-k-core catalogue, not the full Amazon catalogue."
+      ]
+    },
+    {
+      "model": "B_hgt_sbert",
+      "split": "test",
+      "metrics": {
+        "precision@5": 0.005048335123523094,
+        "recall@5": 0.01832048608917251,
+        "ndcg@5": 0.013440230235281651,
+        "map@5": 0.010486036519871105,
+        "hit_rate@5": 0.024704618689581095,
+        "precision@10": 0.00397422126745435,
+        "recall@10": 0.026915996765778785,
+        "ndcg@10": 0.01643927682815817,
+        "map@10": 0.011526540679525181,
+        "hit_rate@10": 0.03920515574650913,
+        "precision@20": 0.002980665950590763,
+        "recall@20": 0.04008393108032964,
+        "ndcg@20": 0.020050803757425063,
+        "map@20": 0.012441626291053082,
+        "hit_rate@20": 0.057465091299677765,
+        "mrr": 0.017676577744483026,
+        "coverage@5": 0.15500830941229793,
+        "diversity@5": 0.45392051557465096,
+        "novelty@5": 10.434476320077525,
+        "coverage@10": 0.24384348088835173,
+        "diversity@10": 0.3053168635875403,
+        "novelty@10": 10.625082459728434,
+        "coverage@20": 0.36757818401571235,
+        "diversity@20": 0.19747583243823844,
+        "novelty@20": 10.84033132808202
+      },
+      "diagnostics": {
+        "n_users_evaluated": 1862,
+        "n_eval_rows": 14418,
+        "cold_user_rows_excluded": 6101,
+        "cold_item_rows_excluded": 8603,
+        "catalogue_size": 6619,
+        "name": "hgt",
+        "n_users": 15704,
+        "n_items": 6619,
+        "hidden_channels": 128,
+        "full_batch": true,
+        "batch_size": 4096,
+        "num_neighbors": [
+          15,
+          10
+        ],
+        "num_heads": 4,
+        "num_layers": 2,
+        "epochs": 100,
+        "fusion": false,
+        "trust_weighted_loss": false,
+        "train_seconds": 195.61,
+        "sbert": true,
+        "trust": false,
+        "temporal": false
+      },
+      "notes": [
+        "Full-catalogue ranking; no sampled-negative shortcut.",
+        "Training positives are masked before ranking.",
+        "6,101 rows with an unseen user and 8,603 with an unseen item were excluded from these metrics and are the cold-start path's responsibility (Module 23).",
+        "Coverage and novelty are relative to the post-k-core catalogue, not the full Amazon catalogue."
+      ]
+    },
+    {
+      "model": "C_hgt_sbert_trust",
+      "split": "test",
+      "metrics": {
+        "precision@5": 0.004189044038668099,
+        "recall@5": 0.013773402065561035,
+        "ndcg@5": 0.010193749612833859,
+        "map@5": 0.007652166129609739,
+        "hit_rate@5": 0.020945220193340493,
+        "precision@10": 0.0037056928034371645,
+        "recall@10": 0.02347198758315837,
+        "ndcg@10": 0.013625227149629836,
+        "map@10": 0.008928749026761915,
+        "hit_rate@10": 0.03544575725026853,
+        "precision@20": 0.002900107411385607,
+        "recall@20": 0.038122584664096,
+        "ndcg@20": 0.017511837176361598,
+        "map@20": 0.009870033378817086,
+        "hit_rate@20": 0.055853920515574654,
+        "mrr": 0.015062592578446563,
+        "coverage@5": 0.14790753890315758,
+        "diversity@5": 0.4252416756176155,
+        "novelty@5": 10.603713424962569,
+        "coverage@10": 0.2344765070252304,
+        "diversity@10": 0.2824382384532761,
+        "novelty@10": 10.78868029047139,
+        "coverage@20": 0.36032633328297325,
+        "diversity@20": 0.18329752953813103,
+        "novelty@20": 10.997539321005465
+      },
+      "diagnostics": {
+        "n_users_evaluated": 1862,
+        "n_eval_rows": 14418,
+        "cold_user_rows_excluded": 6101,
+        "cold_item_rows_excluded": 8603,
+        "catalogue_size": 6619,
+        "name": "hgt",
+        "n_users": 15704,
+        "n_items": 6619,
+        "hidden_channels": 128,
+        "full_batch": true,
+        "batch_size": 4096,
+        "num_neighbors": [
+          15,
+          10
+        ],
+        "num_heads": 4,
+        "num_layers": 2,
+        "epochs": 100,
+        "fusion": false,
+        "trust_weighted_loss": false,
+        "train_seconds": 194.71,
+        "sbert": true,
+        "trust": true,
+        "temporal": false
+      },
+      "notes": [
+        "Full-catalogue ranking; no sampled-negative shortcut.",
+        "Training positives are masked before ranking.",
+        "6,101 rows with an unseen user and 8,603 with an unseen item were excluded from these metrics and are the cold-start path's responsibility (Module 23).",
+        "Coverage and novelty are relative to the post-k-core catalogue, not the full Amazon catalogue."
+      ]
+    },
+    {
+      "model": "D_hgt_sbert_temporal",
+      "split": "test",
+      "metrics": {
+        "precision@5": 0.005477980665950591,
+        "recall@5": 0.018112955403661157,
+        "ndcg@5": 0.012984022449854,
+        "map@5": 0.009636740661176752,
+        "hit_rate@5": 0.02685284640171858,
+        "precision@10": 0.00397422126745435,
+        "recall@10": 0.026091898860743243,
+        "ndcg@10": 0.01564652082120115,
+        "map@10": 0.010609708795799021,
+        "hit_rate@10": 0.03759398496240601,
+        "precision@20": 0.003276047261009667,
+        "recall@20": 0.04316635209255415,
+        "ndcg@20": 0.02027339961557904,
+        "map@20": 0.011790732241052603,
+        "hit_rate@20": 0.059613319011815255,
+        "mrr": 0.017506071810404346,
+        "coverage@5": 0.1528931862819157,
+        "diversity@5": 0.4692803437164339,
+        "novelty@5": 10.509774081832221,
+        "coverage@10": 0.24142619731077203,
+        "diversity@10": 0.31718582169709986,
+        "novelty@10": 10.684220814760696,
+        "coverage@20": 0.36606738177972503,
+        "diversity@20": 0.206203007518797,
+        "novelty@20": 10.877250262552762
+      },
+      "diagnostics": {
+        "n_users_evaluated": 1862,
+        "n_eval_rows": 14418,
+        "cold_user_rows_excluded": 6101,
+        "cold_item_rows_excluded": 8603,
+        "catalogue_size": 6619,
+        "name": "hgt",
+        "n_users": 15704,
+        "n_items": 6619,
+        "hidden_channels": 128,
+        "full_batch": true,
+        "batch_size": 4096,
+        "num_neighbors": [
+          15,
+          10
+        ],
+        "num_heads": 4,
+        "num_layers": 2,
+        "epochs": 100,
+        "fusion": false,
+        "trust_weighted_loss": false,
+        "train_seconds": 194.75,
+        "sbert": true,
+        "trust": false,
+        "temporal": true
+      },
+      "notes": [
+        "Full-catalogue ranking; no sampled-negative shortcut.",
+        "Training positives are masked before ranking.",
+        "6,101 rows with an unseen user and 8,603 with an unseen item were excluded from these metrics and are the cold-start path's responsibility (Module 23).",
+        "Coverage and novelty are relative to the post-k-core catalogue, not the full Amazon catalogue."
+      ]
+    },
+    {
+      "model": "E_hgt_sbert_trust_temporal",
+      "split": "test",
+      "metrics": {
+        "precision@5": 0.004296455424274973,
+        "recall@5": 0.014182604005375219,
+        "ndcg@5": 0.010647972765992626,
+        "map@5": 0.008195190356844491,
+        "hit_rate@5": 0.021482277121374866,
+        "precision@10": 0.0037593984962406013,
+        "recall@10": 0.025113703736468634,
+        "ndcg@10": 0.014529072299283671,
+        "map@10": 0.009744098767326482,
+        "hit_rate@10": 0.03705692803437164,
+        "precision@20": 0.0030343716433942,
+        "recall@20": 0.03960637847350426,
+        "ndcg@20": 0.018525768241786596,
+        "map@20": 0.010714192551040516,
+        "hit_rate@20": 0.05853920515574651,
+        "mrr": 0.015432683601232183,
+        "coverage@5": 0.19700861157274513,
+        "diversity@5": 0.4228786251342643,
+        "novelty@5": 10.94991004094558,
+        "coverage@10": 0.3021604471974619,
+        "diversity@10": 0.2841031149301826,
+        "novelty@10": 11.094245352747262,
+        "coverage@20": 0.4385858891071159,
+        "diversity@20": 0.18437164339419979,
+        "novelty@20": 11.25165971321063
+      },
+      "diagnostics": {
+        "n_users_evaluated": 1862,
+        "n_eval_rows": 14418,
+        "cold_user_rows_excluded": 6101,
+        "cold_item_rows_excluded": 8603,
+        "catalogue_size": 6619,
+        "name": "hgt",
+        "n_users": 15704,
+        "n_items": 6619,
+        "hidden_channels": 128,
+        "full_batch": true,
+        "batch_size": 4096,
+        "num_neighbors": [
+          15,
+          10
+        ],
+        "num_heads": 4,
+        "num_layers": 2,
+        "epochs": 100,
+        "fusion": false,
+        "trust_weighted_loss": false,
+        "train_seconds": 194.68,
+        "sbert": true,
+        "trust": true,
+        "temporal": true
+      },
+      "notes": [
+        "Full-catalogue ranking; no sampled-negative shortcut.",
+        "Training positives are masked before ranking.",
+        "6,101 rows with an unseen user and 8,603 with an unseen item were excluded from these metrics and are the cold-start path's responsibility (Module 23).",
+        "Coverage and novelty are relative to the post-k-core catalogue, not the full Amazon catalogue."
+      ]
+    },
+    {
+      "model": "F_dytrustrec_full",
+      "split": "test",
+      "metrics": {
+        "precision@5": 0.004189044038668099,
+        "recall@5": 0.012370443734568332,
+        "ndcg@5": 0.00813345073222614,
+        "map@5": 0.005514082826112902,
+        "hit_rate@5": 0.02040816326530612,
+        "precision@10": 0.0032223415682062304,
+        "recall@10": 0.01918000763328368,
+        "ndcg@10": 0.010506837143490431,
+        "map@10": 0.006396578890537001,
+        "hit_rate@10": 0.030612244897959183,
+        "precision@20": 0.0027121374865735773,
+        "recall@20": 0.033564457262094206,
+        "ndcg@20": 0.014479458163307845,
+        "map@20": 0.00740779148582436,
+        "hit_rate@20": 0.05102040816326531,
+        "mrr": 0.011380414131479933,
+        "coverage@5": 0.22193684846653572,
+        "diversity@5": 0.41868958109559623,
+        "novelty@5": 11.006513714794888,
+        "coverage@10": 0.33509593594198517,
+        "diversity@10": 0.2864124597207304,
+        "novelty@10": 11.098344962583399,
+        "coverage@20": 0.49916905877020695,
+        "diversity@20": 0.18633190118152523,
+        "novelty@20": 11.214939872764706
+      },
+      "diagnostics": {
+        "n_users_evaluated": 1862,
+        "n_eval_rows": 14418,
+        "cold_user_rows_excluded": 6101,
+        "cold_item_rows_excluded": 8603,
+        "catalogue_size": 6619,
+        "name": "hgt",
+        "n_users": 15704,
+        "n_items": 6619,
+        "hidden_channels": 128,
+        "full_batch": true,
+        "batch_size": 4096,
+        "num_neighbors": [
+          15,
+          10
+        ],
+        "num_heads": 4,
+        "num_layers": 2,
+        "epochs": 100,
+        "fusion": true,
+        "trust_weighted_loss": false,
+        "train_seconds": 201.74,
+        "sbert": true,
+        "trust": true,
+        "temporal": true
+      },
+      "notes": [
+        "Full-catalogue ranking; no sampled-negative shortcut.",
+        "Training positives are masked before ranking.",
+        "6,101 rows with an unseen user and 8,603 with an unseen item were excluded from these metrics and are the cold-start path's responsibility (Module 23).",
+        "Coverage and novelty are relative to the post-k-core catalogue, not the full Amazon catalogue."
+      ]
+    },
+    {
+      "model": "G_dytrustrec_trust_weighted_loss",
+      "split": "test",
+      "metrics": {
+        "precision@5": 0.005263157894736843,
+        "recall@5": 0.017329676231394812,
+        "ndcg@5": 0.012120869674939482,
+        "map@5": 0.00897168516529419,
+        "hit_rate@5": 0.02577873254564984,
+        "precision@10": 0.004135338345864662,
+        "recall@10": 0.025739092629533014,
+        "ndcg@10": 0.015107846852753975,
+        "map@10": 0.010038432248421507,
+        "hit_rate@10": 0.03866809881847476,
+        "precision@20": 0.003114930182599356,
+        "recall@20": 0.03745784711697392,
+        "ndcg@20": 0.018518988730752597,
+        "map@20": 0.010905717961058102,
+        "hit_rate@20": 0.05800214822771214,
+        "mrr": 0.015931939116046557,
+        "coverage@5": 0.19262728508838192,
+        "diversity@5": 0.47443609022556393,
+        "novelty@5": 10.918154323958477,
+        "coverage@10": 0.3020093669738631,
+        "diversity@10": 0.319656283566058,
+        "novelty@10": 11.064943445770572,
+        "coverage@20": 0.44538449916905876,
+        "diversity@20": 0.2099624060150376,
+        "novelty@20": 11.215158410929954
+      },
+      "diagnostics": {
+        "n_users_evaluated": 1862,
+        "n_eval_rows": 14418,
+        "cold_user_rows_excluded": 6101,
+        "cold_item_rows_excluded": 8603,
+        "catalogue_size": 6619,
+        "name": "hgt",
+        "n_users": 15704,
+        "n_items": 6619,
+        "hidden_channels": 128,
+        "full_batch": true,
+        "batch_size": 4096,
+        "num_neighbors": [
+          15,
+          10
+        ],
+        "num_heads": 4,
+        "num_layers": 2,
+        "epochs": 100,
+        "fusion": true,
+        "trust_weighted_loss": true,
+        "train_seconds": 201.38,
+        "sbert": true,
+        "trust": true,
+        "temporal": true
+      },
+      "notes": [
+        "Full-catalogue ranking; no sampled-negative shortcut.",
+        "Training positives are masked before ranking.",
+        "6,101 rows with an unseen user and 8,603 with an unseen item were excluded from these metrics and are the cold-start path's responsibility (Module 23).",
+        "Coverage and novelty are relative to the post-k-core catalogue, not the full Amazon catalogue."
+      ]
+    }
+  ]
+}

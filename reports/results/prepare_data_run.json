@@ -1,0 +1,307 @@
+{
+  "environment": {
+    "timestamp_utc": "2026-09-23T06:06:13+00:00",
+    "seed": 42,
+    "python": "3.12.14",
+    "git_revision": "not-a-git-repository",
+    "hardware": {
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "machine": "arm64",
+      "processor": "arm",
+      "cpu_count": 12,
+      "torch_threads": 6,
+      "cuda_available": false,
+      "mps_available": true,
+      "cpu_brand": "Apple M3 Pro",
+      "memory_bytes": 19327352832
+    },
+    "packages": {
+      "torch": "2.13.0",
+      "torch_geometric": "2.8.0.post1",
+      "pyg-lib": "0.8.0+pt213",
+      "numpy": "2.5.2",
+      "pandas": "3.0.5",
+      "scipy": "1.18.1",
+      "scikit-learn": "1.9.0",
+      "networkx": "3.6.1",
+      "sentence-transformers": "6.0.0",
+      "transformers": "5.15.1",
+      "nltk": "3.10.3",
+      "pyarrow": "25.0.1",
+      "matplotlib": "3.11.1",
+      "plotly": "6.9.0",
+      "streamlit": "1.62.0"
+    }
+  },
+  "config": {
+    "dataset": {
+      "name": "amazon_reviews_2023",
+      "citation": "Hou et al. (2024), Bridging Language and Items for Retrieval and Recommendation",
+      "license_note": "Public research dataset. Used under its original terms; raw files are never modified."
+    },
+    "active_tier": "dev",
+    "tiers": {
+      "smoke": {
+        "category": "All_Beauty",
+        "reviews_url": "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/All_Beauty.jsonl",
+        "meta_url": "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/meta_categories/meta_All_Beauty.jsonl",
+        "materialise": true,
+        "limits": {
+          "max_reviews": 20000,
+          "max_users": null,
+          "max_products": null
+        },
+        "k_core": {
+          "min_interactions_per_user": 3,
+          "min_interactions_per_item": 3,
+          "max_passes": 100
+        }
+      },
+      "dev": {
+        "category": "Video_Games",
+        "reviews_url": "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/Video_Games.jsonl",
+        "meta_url": "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/meta_categories/meta_Video_Games.jsonl",
+        "materialise": true,
+        "limits": {
+          "max_reviews": 300000,
+          "max_users": 30000,
+          "max_products": 40000
+        },
+        "k_core": {
+          "min_interactions_per_user": 5,
+          "min_interactions_per_item": 5,
+          "max_passes": 100
+        }
+      },
+      "full": {
+        "category": "Electronics",
+        "reviews_url": "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/Electronics.jsonl",
+        "meta_url": "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/meta_categories/meta_Electronics.jsonl",
+        "materialise": false,
+        "stream_byte_budget": 2147483648,
+        "limits": {
+          "max_reviews": 1000000,
+          "max_users": 100000,
+          "max_products": 150000
+        },
+        "k_core": {
+          "min_interactions_per_user": 5,
+          "min_interactions_per_item": 5,
+          "max_passes": 100
+        }
+      }
+    },
+    "sampling": {
+      "strategy": "user_core",
+      "seed": 42,
+      "declare_bias": true
+    },
+    "schema": {
+      "interactions": {
+        "source_file": "reviews",
+        "field_map": {
+          "user_id": "user_id",
+          "item_id": "parent_asin",
+          "variant_id": "asin",
+          "rating": "rating",
+          "review_title": "title",
+          "review_text": "text",
+          "timestamp": "timestamp",
+          "helpful_votes": "helpful_vote",
+          "verified_purchase": "verified_purchase"
+        },
+        "required": [
+          "user_id",
+          "item_id",
+          "rating",
+          "timestamp"
+        ]
+      },
+      "products": {
+        "source_file": "meta",
+        "field_map": {
+          "item_id": "parent_asin",
+          "product_title": "title",
+          "product_description": "description",
+          "product_features": "features",
+          "brand": "store",
+          "main_category": "main_category",
+          "categories": "categories",
+          "price": "price",
+          "avg_rating_meta": "average_rating",
+          "rating_count_meta": "rating_number",
+          "details": "details",
+          "seller": null
+        },
+        "required": [
+          "item_id"
+        ]
+      },
+      "notes": {
+        "brand_is_store": "Amazon Reviews 2023 has NO `brand` field. `store` is the Amazon storefront name, which usually but not always coincides with the manufacturer. We map store -> brand and label the graph node type `Brand (proxy: store)`. This is an approximation and is reported as such; it is not a ground-truth brand.\n",
+        "seller_absent": "There is NO seller field. Per the project rule against inventing entities, the heterogeneous graph therefore has NO Seller node type and no `sold_by` edge. The architecture diagram must reflect this.\n",
+        "categories_sparse": "`categories` is an empty list for a large share of products. `main_category` is far better populated. The Category node type is built primarily from main_category, with the `categories` leaf used only when non-empty.\n",
+        "price_sparse": "`price` is null for a large share of products and is a string in some rows. Price is treated as an optional feature with an explicit missingness indicator, never imputed silently.\n",
+        "no_fraud_labels": "There are NO fake-review or fraud labels. Trust scores from Module 11/12 are therefore UNSUPERVISED and cannot be scored against ground truth. Evaluation uses synthetic injection experiments (Module 45), which must always be reported as synthetic.\n"
+      }
+    },
+    "cleaning": {
+      "rating": {
+        "min": 1.0,
+        "max": 5.0
+      },
+      "timestamp": {
+        "min_iso": "1996-01-01T00:00:00Z",
+        "max_iso": "2023-12-31T23:59:59Z",
+        "unit": "ms"
+      },
+      "text": {
+        "strip_html": true,
+        "normalise_whitespace": true,
+        "unescape_entities": true,
+        "lowercase": false,
+        "min_length_chars": 0
+      },
+      "duplicates": {
+        "exact_keys": [
+          "user_id",
+          "item_id",
+          "timestamp"
+        ],
+        "flag_repeated_text_by_user": true
+      },
+      "outliers": {
+        "action": "flag",
+        "flag_column": "outlier_flag"
+      }
+    },
+    "paths": {
+      "raw": "data/raw",
+      "interim": "data/interim",
+      "processed": "data/processed",
+      "embeddings": "data/embeddings",
+      "reports": "reports",
+      "figures": "reports/figures",
+      "tables": "reports/tables",
+      "results": "reports/results"
+    },
+    "split": {
+      "strategy": "global_temporal",
+      "train_frac": 0.8,
+      "val_frac": 0.1,
+      "test_frac": 0.1,
+      "enforce_no_future_edges": true
+    }
+  },
+  "phase": "1-data-ingestion-and-cleaning",
+  "tier": "dev",
+  "load_manifest": {
+    "tier": "dev",
+    "category": "Video_Games",
+    "dataset": "amazon_reviews_2023",
+    "sampling": {
+      "strategy": "user_core",
+      "seed": 42,
+      "bias_declaration": "Uniform random sample of USERS, keeping every interaction of each sampled user. Unbiased over users and preserves complete per-user histories, which temporal weighting and sequence analysis depend on. Item popularity within the sample remains proportional to the full category. This is the default for graph work."
+    },
+    "limits": {
+      "max_reviews": 300000,
+      "max_users": 30000,
+      "max_products": 40000
+    },
+    "k_core_declared": {
+      "min_interactions_per_user": 5,
+      "min_interactions_per_item": 5,
+      "max_passes": 100
+    },
+    "sources": {
+      "reviews": {
+        "url": "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/Video_Games.jsonl",
+        "local_path": "data/raw/Video_Games.jsonl",
+        "bytes": 2682948518,
+        "sha256_prefix": "ea2e0257696bad79040038d7edecc27adf1b625d126b48f4fbdb596d40ec8c20-partial67108864",
+        "materialised": true,
+        "csv_path": "data/interim/reviews_dev.csv"
+      },
+      "meta": {
+        "url": "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/meta_categories/meta_Video_Games.jsonl",
+        "local_path": "data/raw/meta_Video_Games.jsonl",
+        "bytes": 437375785,
+        "sha256_prefix": "a570625d8eb5f06fb65a1fe646c8490253f927e32acd9c8fec0b35ee16b33e85-partial67108864",
+        "materialised": true,
+        "csv_path": "data/interim/meta_dev.csv"
+      }
+    },
+    "product_budget": {
+      "max_products": 40000,
+      "observed_before_k_core": 47089,
+      "exceeded": true,
+      "policy": "report-only; no truncation (see _check_product_budget)"
+    },
+    "metadata_coverage": 1.0,
+    "counts": {
+      "interactions": 262547,
+      "users": 30000,
+      "items": 47089,
+      "products_with_metadata": 47089
+    },
+    "field_availability": {
+      "interactions": {
+        "mapped": {
+          "user_id": "user_id",
+          "item_id": "parent_asin",
+          "variant_id": "asin",
+          "rating": "rating",
+          "review_title": "title",
+          "review_text": "text",
+          "timestamp": "timestamp",
+          "helpful_votes": "helpful_vote",
+          "verified_purchase": "verified_purchase"
+        },
+        "declared_absent": [],
+        "missing_in_data": [],
+        "unmapped_source": [
+          "images"
+        ],
+        "records_inspected": 200
+      },
+      "products": {
+        "mapped": {
+          "item_id": "parent_asin",
+          "product_title": "title",
+          "product_description": "description",
+          "product_features": "features",
+          "brand": "store",
+          "main_category": "main_category",
+          "categories": "categories",
+          "price": "price",
+          "avg_rating_meta": "average_rating",
+          "rating_count_meta": "rating_number",
+          "details": "details"
+        },
+        "declared_absent": [
+          "seller"
+        ],
+        "missing_in_data": [],
+        "unmapped_source": [
+          "author",
+          "bought_together",
+          "images",
+          "subtitle",
+          "videos"
+        ],
+        "records_inspected": 200
+      }
+    }
+  },
+  "cleaning_summary": {
+    "rows_raw": 262547,
+    "rows_final": 144178,
+    "rows_removed": 118369,
+    "retention_pct": 54.915,
+    "users_raw": 30000,
+    "users_final": 17223,
+    "items_raw": 47089,
+    "items_final": 7692
+  }
+}

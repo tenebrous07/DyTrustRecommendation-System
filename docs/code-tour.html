@@ -1,0 +1,388 @@
+<title>DyTrustRec Code Tour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&family=Karla:wght@400;500;600;700&display=swap">
+
+<style>
+:root{
+  --ink:#2A2226; --paper:#F7F4F2; --card:#FFFDFC; --sunk:#EFE9E6;
+  --rule:#DED4D0; --rule-soft:#E9E1DD;
+  --text:#2A2226; --text-2:#5A4E52; --muted:#867579;
+  --route:#8C2F39; --route-soft:#F2E2E3;
+  --steel:#3E6B89; --steel-soft:#E1EAEF;
+  --good:#4F7A4A; --good-soft:#E2EBE0;
+  --display:"Fraunces",Georgia,serif;
+  --body:"Karla",-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --measure:62ch;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#F2EBE9; --paper:#191416; --card:#221B1E; --sunk:#2B2226;
+    --rule:#3B2F33; --rule-soft:#2F2529;
+    --text:#EDE4E2; --text-2:#BCACB0; --muted:#96858A;
+    --route:#E08894; --route-soft:#3A2226;
+    --steel:#87B6D2; --steel-soft:#1D2B33;
+    --good:#93BE8C; --good-soft:#1E2A1C;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#F2EBE9; --paper:#191416; --card:#221B1E; --sunk:#2B2226;
+  --rule:#3B2F33; --rule-soft:#2F2529;
+  --text:#EDE4E2; --text-2:#BCACB0; --muted:#96858A;
+  --route:#E08894; --route-soft:#3A2226;
+  --steel:#87B6D2; --steel-soft:#1D2B33;
+  --good:#93BE8C; --good-soft:#1E2A1C;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--paper); color:var(--text);
+  font-family:var(--body); font-size:17px; line-height:1.65;
+}
+.wrap{max-width:820px; margin:0 auto; padding:0 24px 100px;}
+
+.top{padding:70px 0 34px;}
+.kicker{
+  font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--route); margin:0 0 18px;
+}
+h1{
+  font-family:var(--display); font-weight:700; font-size:clamp(2.6rem,7vw,4.2rem);
+  line-height:1.02; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance;
+}
+.deck{font-size:1.18rem; color:var(--text-2); max-width:var(--measure); margin:0 0 8px;}
+.deck strong{color:var(--text); font-weight:600;}
+
+h2{
+  font-family:var(--display); font-weight:600; font-size:clamp(1.55rem,4vw,2.05rem);
+  line-height:1.14; margin:0 0 6px; text-wrap:balance; letter-spacing:-.01em;
+}
+h3{font-family:var(--body); font-weight:700; font-size:1.05rem; margin:26px 0 6px;}
+section{margin:0 0 58px;}
+p{max-width:var(--measure); margin:0 0 14px;}
+ul{max-width:var(--measure); padding-left:19px; margin:0 0 14px;}
+li{margin:0 0 7px;}
+a{color:var(--route);}
+code{
+  font-family:var(--mono); font-size:.83em; background:var(--sunk);
+  padding:1px 5px; border-radius:3px;
+}
+.sec-lead{color:var(--text-2); max-width:var(--measure); margin:0 0 22px;}
+
+/* one-liner banner */
+.oneline{
+  background:var(--card); border:1px solid var(--rule); border-left:4px solid var(--route);
+  padding:22px 24px; margin:28px 0;
+}
+.oneline p{margin:0; font-family:var(--display); font-size:1.22rem; line-height:1.45;
+  font-weight:400; max-width:none;}
+
+/* the route */
+.route{position:relative; margin:26px 0 0; padding-left:0;}
+.stop{
+  position:relative; display:grid; grid-template-columns:52px minmax(0,1fr); gap:18px;
+  padding:0 0 26px;
+}
+.stop::before{
+  content:""; position:absolute; left:17px; top:30px; bottom:-4px; width:2px;
+  background:var(--rule);
+}
+.stop:last-child::before{display:none;}
+.dot{
+  width:36px; height:36px; border-radius:50%; background:var(--route); color:#FFF;
+  display:grid; place-items:center; font-family:var(--mono); font-size:13px; font-weight:500;
+  position:relative; z-index:1;
+}
+:root[data-theme="dark"] .dot,
+:root:not([data-theme="light"]) .dot{color:#191416;}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .dot{color:#FFF;}}
+.stop-body{padding-top:3px;}
+.stop-body h3{margin:0 0 3px; font-size:1.12rem;}
+.stop-body .where{
+  font-family:var(--mono); font-size:11.5px; color:var(--muted); margin:0 0 8px;
+}
+.stop-body p{margin:0 0 8px; font-size:16px;}
+.takeaway{
+  background:var(--sunk); padding:9px 13px; font-size:14.5px; color:var(--text-2);
+  border-left:2px solid var(--steel); margin:10px 0 0; max-width:var(--measure);
+}
+.takeaway b{color:var(--text);}
+
+/* cards */
+.card{
+  background:var(--card); border:1px solid var(--rule); padding:20px 22px; margin:18px 0;
+}
+.card h3{margin-top:0;}
+.card p:last-child,.card ul:last-child{margin-bottom:0;}
+.card-good{border-left:4px solid var(--good);}
+.card-bad{border-left:4px solid var(--route);}
+.card-steel{border-left:4px solid var(--steel);}
+
+/* tables */
+.scroll{overflow-x:auto; margin:18px 0; border:1px solid var(--rule); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14.5px; min-width:460px;}
+th,td{padding:9px 14px; text-align:left; border-bottom:1px solid var(--rule-soft);
+  vertical-align:top;}
+thead th{
+  font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted); font-weight:500; background:var(--sunk);
+}
+tbody tr:last-child td{border-bottom:0;}
+td.f{font-family:var(--mono); font-size:12.5px; white-space:nowrap; color:var(--steel);}
+
+pre{
+  background:var(--ink); color:var(--paper); padding:16px 18px; overflow-x:auto;
+  font-family:var(--mono); font-size:12.5px; line-height:1.6; margin:16px 0;
+}
+.flow{
+  font-family:var(--mono); font-size:12.5px; line-height:1.9; background:var(--card);
+  border:1px solid var(--rule); padding:20px 22px; margin:20px 0; overflow-x:auto;
+}
+.flow b{color:var(--route); font-weight:500;}
+.flow span{color:var(--muted);}
+
+.q{font-family:var(--display); font-weight:600; font-size:1.06rem; margin:22px 0 4px;
+  color:var(--text);}
+.foot{border-top:2px solid var(--rule); margin-top:50px; padding-top:20px;
+  font-family:var(--mono); font-size:11.5px; color:var(--muted); max-width:var(--measure);}
+:focus-visible{outline:2px solid var(--steel); outline-offset:2px;}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <p class="kicker">Code tour · plain language</p>
+  <h1>How the code works</h1>
+  <p class="deck">A walk through the DyTrustRec codebase, folder by folder — <strong>what each part does and why it exists</strong>, without the maths. Read it once and you can explain the project to anyone.</p>
+</header>
+
+<section>
+  <h2>The whole thing in one sentence</h2>
+  <div class="oneline">
+    <p>We take Amazon reviews, clean them, turn them into a <em>network</em> of users and products, teach a model to walk that network, and have it recommend things — while explaining <em>why</em> and admitting how sure it is.</p>
+  </div>
+  <p>That's it. Everything in the code serves one of those six steps. If you understand the journey below, you understand the project.</p>
+</section>
+
+<section>
+  <h2>The journey the data takes</h2>
+  <p class="sec-lead">One file of raw reviews goes in at the top. A ranked list with explanations comes out at the bottom. Each arrow is a folder in <code>src/</code>.</p>
+  <div class="flow">
+2.5 GB of raw Amazon reviews<br>
+&nbsp;&nbsp;<span>│</span><br>
+&nbsp;&nbsp;<span>▼</span> <b>src/data/</b> &nbsp;<span>— read it, check it, clean it, split it by date</span><br>
+144,178 tidy interactions<br>
+&nbsp;&nbsp;<span>│</span><br>
+&nbsp;&nbsp;<span>▼</span> <b>src/features/</b> &nbsp;<span>— turn text + behaviour into numbers</span><br>
+Every review as a list of 390 numbers<br>
+&nbsp;&nbsp;<span>│</span><br>
+&nbsp;&nbsp;<span>▼</span> <b>src/graph/</b> &nbsp;<span>— wire users, products, reviews, brands together</span><br>
+A network: 138,480 nodes, 718,506 connections<br>
+&nbsp;&nbsp;<span>│</span><br>
+&nbsp;&nbsp;<span>▼</span> <b>src/anomaly/</b> &nbsp;<span>— score how trustworthy each user looks</span><br>
+&nbsp;&nbsp;<span>▼</span> <b>src/models/</b> &nbsp;<span>— learn from the network</span><br>
+A 128-number "fingerprint" per user and per product<br>
+&nbsp;&nbsp;<span>│</span><br>
+&nbsp;&nbsp;<span>▼</span> <b>src/recommendation/</b> + <b>src/explainability/</b><br>
+Top 10 products, each with a reason and a confidence<br>
+&nbsp;&nbsp;<span>│</span><br>
+&nbsp;&nbsp;<span>▼</span> <b>app/streamlit_app.py</b><br>
+A dashboard you can click through
+  </div>
+</section>
+
+<section>
+  <h2>The eight stops</h2>
+  <p class="sec-lead">Each stop is a folder. For each one: what it does, where it lives, and the single thing worth remembering.</p>
+
+  <div class="route">
+
+    <div class="stop">
+      <div class="dot">1</div>
+      <div class="stop-body">
+        <h3>Getting the data in</h3>
+        <p class="where">src/data/loader.py · validator.py</p>
+        <p>Downloads the Amazon file, reads it line by line (so it never loads 2.5 GB into memory at once), and <em>translates</em> it. Amazon calls a product <code>parent_asin</code>; the rest of our code calls it <code>item_id</code>. That translation lives in a config file, so swapping datasets means editing YAML, not Python.</p>
+        <div class="takeaway"><b>Remember:</b> if a field doesn't exist in the data, we say so — we never make one up. That's why there's no "seller" anywhere in the project.</div>
+      </div>
+    </div>
+
+    <div class="stop">
+      <div class="dot">2</div>
+      <div class="stop-body">
+        <h3>Cleaning it</h3>
+        <p class="where">src/data/cleaner.py</p>
+        <p>Throws away rows that make no sense (a rating of 7 out of 5, a review dated 2031) and removes exact duplicates. Then it <em>flags</em> the suspicious ones — someone posting the same text on six products, or six reviews twenty seconds apart — and <strong>keeps them</strong>.</p>
+        <div class="takeaway"><b>Remember:</b> we flag suspicious rows but never delete them. The fraud detector later can't find what cleaning already threw away.</div>
+      </div>
+    </div>
+
+    <div class="stop">
+      <div class="dot">3</div>
+      <div class="stop-body">
+        <h3>Splitting by time</h3>
+        <p class="where">src/data/splitter.py</p>
+        <p>Older reviews become the training set, newer ones the test set. Never random — a random split would let the model learn from a 2023 purchase and then get tested on a 2019 one, which is cheating.</p>
+        <div class="takeaway"><b>Remember:</b> train on the past, test on the future. It's harsh — 42% of test users were never seen in training — but it's honest.</div>
+      </div>
+    </div>
+
+    <div class="stop">
+      <div class="dot">4</div>
+      <div class="stop-body">
+        <h3>Turning things into numbers</h3>
+        <p class="where">src/features/</p>
+        <p>Computers can't read "this controller broke in a week". <code>sbert.py</code> uses a small language model to turn each review into 384 numbers that capture its meaning — reviews about similar things end up with similar numbers. <code>sentiment.py</code> adds a positive/negative score. <code>review_features.py</code> adds six plain facts: how long it was, was it verified, how old is it.</p>
+        <div class="takeaway"><b>Remember:</b> 384 meaning-numbers + 6 fact-numbers = 390 numbers describing every review.</div>
+      </div>
+    </div>
+
+    <div class="stop">
+      <div class="dot">5</div>
+      <div class="stop-body">
+        <h3>Building the network</h3>
+        <p class="where">src/graph/builder.py</p>
+        <p>This is the heart of it. Instead of a spreadsheet, the data becomes a <em>web</em>: users connect to products they bought, to reviews they wrote; products connect to their brand and category. Five kinds of thing, connected five ways.</p>
+        <p>Why bother? Because a web lets you find "people like you" through paths — you bought this, they bought this too, they also bought <em>that</em>. A spreadsheet can't do that naturally.</p>
+        <div class="takeaway"><b>Remember:</b> every connection is added in <b>both</b> directions, otherwise information could flow from users to products but never back.</div>
+      </div>
+    </div>
+
+    <div class="stop">
+      <div class="dot">6</div>
+      <div class="stop-body">
+        <h3>Scoring trust</h3>
+        <p class="where">src/anomaly/cola.py · trust.py</p>
+        <p>CoLA looks at the network and asks "does this user behave like their neighbours?" Users who look odd get a high anomaly score. We flip that into a trust score between 0 and 1, and use it to make suspicious connections count for less.</p>
+        <div class="takeaway"><b>Remember:</b> this is the part that <b>didn't work</b>. See the last section — it's the most interesting thing you can say about the project.</div>
+      </div>
+    </div>
+
+    <div class="stop">
+      <div class="dot">7</div>
+      <div class="stop-body">
+        <h3>Learning to recommend</h3>
+        <p class="where">src/models/hgt.py</p>
+        <p>HGT is the recommender. It repeatedly passes information along the network's connections, so each user's "fingerprint" gradually absorbs information about the products they touched, the brands behind them, and what similar users did.</p>
+        <p>After training, every user and product is 128 numbers. To recommend, we multiply a user's numbers by every product's numbers — a bigger result means a better match — and take the top 10.</p>
+        <div class="takeaway"><b>Remember:</b> we also built four simpler models in <code>src/models/</code> to compare against. Without them the HGT numbers would mean nothing.</div>
+      </div>
+    </div>
+
+    <div class="stop">
+      <div class="dot">8</div>
+      <div class="stop-body">
+        <h3>Explaining and showing</h3>
+        <p class="where">src/explainability/ · src/recommendation/ · app/</p>
+        <p>For each recommendation we search the network for actual evidence — shared category, shared brand, similar trusted users — and write a sentence from what we find. If there's no evidence, we say so instead of inventing a reason.</p>
+        <p><code>confidence.py</code> adds how sure we are (a brand-new user gets low confidence even when the score is high), <code>counterfactual.py</code> answers "why <em>not</em> this other product", and the Streamlit app puts it on screen.</p>
+        <div class="takeaway"><b>Remember:</b> explanations are built from retrieved facts, never generated text. No evidence, no sentence.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <h2>The supporting cast</h2>
+  <p class="sec-lead">Four folders that don't transform data but hold everything together.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Folder</th><th>What it's for</th></tr></thead>
+      <tbody>
+        <tr><td class="f">configs/</td><td>Five YAML files holding every setting. <strong>No number is hard-coded in Python</strong> — change an experiment by editing YAML.</td></tr>
+        <tr><td class="f">src/utils/</td><td>Config loading, logging, random seeds, choosing CPU vs GPU. Boring but everything depends on it.</td></tr>
+        <tr><td class="f">src/evaluation/</td><td>The scorecard. Precision, recall, NDCG, coverage — the same code scores every model, so comparisons are fair.</td></tr>
+        <tr><td class="f">tests/</td><td>229 automated checks. They caught six real bugs.</td></tr>
+        <tr><td class="f">scripts/</td><td>Six commands you actually run — one per stage of the journey.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Running it, in order</h2>
+  <p class="sec-lead">Each script picks up where the last left off.</p>
+  <pre>python scripts/prepare_data.py --tier dev   # stops 1–2  download &amp; clean
+python scripts/run_eda.py                   #           charts &amp; statistics
+python scripts/build_graph.py               # stops 3–5  split, features, network
+python scripts/run_experiments.py           # stop  7    train &amp; compare models
+python scripts/run_synthetic_anomaly.py     # stop  6    test the trust scoring
+python scripts/export_model.py              #           save results for the app
+streamlit run app/streamlit_app.py          # stop  8    the dashboard</pre>
+  <p>Add <code>--tier smoke</code> to the first command to run the whole pipeline on a small dataset in about 90 seconds — useful for checking nothing is broken before committing to the big one.</p>
+</section>
+
+<section>
+  <h2>Jargon decoder</h2>
+  <p class="sec-lead">Six words that sound harder than they are.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Word</th><th>Plain meaning</th></tr></thead>
+      <tbody>
+        <tr><td class="f">Embedding</td><td>A list of numbers that stands in for something. Similar things get similar lists.</td></tr>
+        <tr><td class="f">Heterogeneous graph</td><td>A network with <em>different kinds</em> of node — users, products, brands — not just one kind.</td></tr>
+        <tr><td class="f">SBERT</td><td>A small language model that converts a sentence into 384 numbers capturing its meaning.</td></tr>
+        <tr><td class="f">HGT</td><td>The recommender. Passes information along network connections so each node learns about its surroundings.</td></tr>
+        <tr><td class="f">NDCG@10</td><td>A score out of 1 for how good your top-10 list is, giving more credit for correct items near the top.</td></tr>
+        <tr><td class="f">Ablation</td><td>Removing one piece at a time to see which pieces were actually helping.</td></tr>
+        <tr><td class="f">k-core</td><td>Dropping users and products with too few interactions, so there's enough data to learn from.</td></tr>
+        <tr><td class="f">Leakage</td><td>Accidentally letting the model see the answers. The whole reason we split by date.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>When someone asks…</h2>
+  <p class="sec-lead">Point at the file.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Question</th><th>Open this</th></tr></thead>
+      <tbody>
+        <tr><td>"How do you handle a missing field?"</td><td class="f">src/data/validator.py</td></tr>
+        <tr><td>"How do you stop data leakage?"</td><td class="f">src/data/splitter.py</td></tr>
+        <tr><td>"How is the graph built?"</td><td class="f">src/graph/builder.py</td></tr>
+        <tr><td>"Where does trust come from?"</td><td class="f">src/anomaly/trust.py</td></tr>
+        <tr><td>"What's the actual model?"</td><td class="f">src/models/hgt.py</td></tr>
+        <tr><td>"How do you know it works?"</td><td class="f">src/evaluation/metrics.py</td></tr>
+        <tr><td>"Where do explanations come from?"</td><td class="f">src/explainability/graph_paths.py</td></tr>
+        <tr><td>"Show me a setting."</td><td class="f">configs/model_config.yaml</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>How to talk about the results</h2>
+  <p class="sec-lead">The honest version is also the more impressive one. Don't hide it.</p>
+
+  <div class="card card-good">
+    <h3>What worked</h3>
+    <p>Adding review meaning (SBERT) made recommendations <strong>15% better</strong>. And the graph models recommend across 22–31% of the catalogue where the simple model only ever suggests 7% — so they're much better at helping people discover things.</p>
+  </div>
+
+  <div class="card card-bad">
+    <h3>What didn't</h3>
+    <p>Two of our own ideas made things <em>worse</em>: the learned "fusion layer" (−22%) and weighting the training by trust (−19%). And no version of our model beat plain old matrix factorisation, the simplest baseline.</p>
+  </div>
+
+  <div class="card card-bad">
+    <h3>The interesting failure</h3>
+    <p>We built fake review campaigns to test the trust scoring. It scored <strong>0.295</strong> where <strong>0.5 is random guessing</strong> — meaning it thought the fake accounts were <em>more</em> trustworthy than real ones.</p>
+    <p><strong>Why?</strong> CoLA flags users who don't fit their surroundings. But a coordinated fake campaign is highly consistent — same wording, same rating, same targets — so its members fit each other <em>perfectly</em>. To this detector, an organised bot network looks more normal than an unusual real person.</p>
+    <p>A one-line rule — "what fraction of this user's reviews are copy-pasted?" — scored 0.99 on the same test.</p>
+  </div>
+
+  <div class="card card-steel">
+    <h3>Say it like this</h3>
+    <p>"The pipeline works and is fully tested. What failed was a <em>hypothesis</em> — that a graph anomaly detector gives a useful trust signal. We measured it properly, we can explain exactly why it failed, and that explains our other negative result too. Reporting it as a success wouldn't have survived scrutiny."</p>
+  </div>
+</section>
+
+<footer class="foot">
+  <p>Companion to the full technical report. 11,654 lines of Python · 229 tests · every number from a real run.</p>
+</footer>
+
+</div>

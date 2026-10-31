@@ -1,0 +1,15 @@
+# Conda alternative to the uv/pip setup in README.md.
+#
+# The uv route is the tested one; this file is provided for environments where
+# conda is mandated. pyg-lib is not on conda-forge for this platform, so it is
+# still installed from PyG's wheel index via pip.
+name: dytrustrec
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - -r requirements.txt
+      - --find-links https://data.pyg.org/whl/torch-2.13.0+cpu.html
+      - -r requirements-pyg.txt

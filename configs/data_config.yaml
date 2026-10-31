@@ -1,0 +1,226 @@
+# =============================================================================
+# DyTrustRec - Data Configuration
+# =============================================================================
+# Nothing in the pipeline hard-codes a dataset layout. Source field names are
+# declared in `schema.field_map` below and translated to a canonical schema by
+# src/data/loader.py. To use a different corpus, add a profile here - do not
+# edit Python.
+#
+# Dataset: Amazon Reviews 2023 (McAuley Lab, UCSD)
+#   https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023
+#   Existing public dataset. Not collected or modified by this project.
+# =============================================================================
+
+dataset:
+  name: amazon_reviews_2023
+  citation: "Hou et al. (2024), Bridging Language and Items for Retrieval and Recommendation"
+  license_note: "Public research dataset. Used under its original terms; raw files are never modified."
+
+# -----------------------------------------------------------------------------
+# TIERS
+# -----------------------------------------------------------------------------
+# `active_tier` selects one profile. Sizes below are real HTTP Content-Length
+# values measured against the HuggingFace CDN, not estimates.
+#
+#   smoke : All_Beauty    0.50 GB  - CI / unit tests / fast end-to-end wiring
+#   dev   : Video_Games   2.91 GB  - DEFAULT. Full category held locally, so
+#                                    sampling is unbiased and reproducible.
+#   full  : Electronics  25.95 GB  - exceeds free disk (30 GB) if materialised,
+#                                    so it is read by capped HTTP range request.
+#                                    See `sampling.strategy` caveat.
+# -----------------------------------------------------------------------------
+active_tier: dev
+
+tiers:
+
+  smoke:
+    category: All_Beauty
+    reviews_url:  "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/All_Beauty.jsonl"
+    meta_url:     "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/meta_categories/meta_All_Beauty.jsonl"
+    materialise: true          # download whole file to data/raw/
+    limits:
+      max_reviews:  20000
+      max_users:    null
+      max_products: null
+    k_core:
+      min_interactions_per_user: 3
+      min_interactions_per_item: 3
+      max_passes: 100
+
+  dev:
+    category: Video_Games
+    reviews_url:  "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/Video_Games.jsonl"
+    meta_url:     "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/meta_categories/meta_Video_Games.jsonl"
+    materialise: true
+    limits:
+      max_reviews:  300000
+      max_users:    30000
+      max_products: 40000
+    k_core:
+      min_interactions_per_user: 5
+      min_interactions_per_item: 5
+      max_passes: 100
+
+  full:
+    category: Electronics
+    reviews_url:  "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/Electronics.jsonl"
+    meta_url:     "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/meta_categories/meta_Electronics.jsonl"
+    materialise: false         # 25.95 GB - stream, never store in full
+    stream_byte_budget: 2147483648   # 2 GiB read cap via HTTP Range
+    limits:
+      max_reviews:  1000000
+      max_users:    100000
+      max_products: 150000
+    k_core:
+      min_interactions_per_user: 5
+      min_interactions_per_item: 5
+      max_passes: 100
+
+# -----------------------------------------------------------------------------
+# SAMPLING
+# -----------------------------------------------------------------------------
+# NOTE ON limits.max_products: it is a REPORTED GUARD, not a cap. Once users are
+# chosen, the only ways to force the item count down are to drop unpopular items
+# (which biases the coverage and novelty metrics) or to drop users (which breaks
+# the complete-history guarantee). Both are worse than the overrun, so an excess
+# is logged and recorded in the manifest, and k-core does the actual reduction.
+
+sampling:
+  # head      - take the first N records. Cheap, but a file prefix is NOT a
+  #             random sample of the interaction graph. Only defensible when
+  #             the whole file was materialised and we are just capping cost.
+  # reservoir - uniform sample over the full stream (Algorithm R). Unbiased,
+  #             but must read every byte, so it costs bandwidth on `full`.
+  # user_core - reservoir-sample USERS, then keep all their interactions.
+  #             Preserves per-user history length, which temporal modelling
+  #             (Module 13) depends on. Preferred for graph work.
+  strategy: user_core
+  seed: 42
+  # Recorded in the manifest so a biased sample can never be silently reported
+  # as a representative one.
+  declare_bias: true
+
+# -----------------------------------------------------------------------------
+# SCHEMA ADAPTER
+# -----------------------------------------------------------------------------
+# LEFT  = canonical name used everywhere downstream in src/
+# RIGHT = field name in this dataset, or null if the dataset lacks it.
+#
+# Verified against real records pulled from the HF CDN on 2026-08-24.
+# Fields mapped to null are ABSENT, not merely empty. Downstream modules must
+# check `available_fields` on the LoadResult and degrade, never invent.
+# -----------------------------------------------------------------------------
+schema:
+
+  interactions:
+    source_file: reviews
+    field_map:
+      user_id:            user_id
+      item_id:            parent_asin      # canonical product (groups variants)
+      variant_id:         asin             # size/colour variant of item_id
+      rating:             rating
+      review_title:       title
+      review_text:        text
+      timestamp:          timestamp        # int64, milliseconds since epoch UTC
+      helpful_votes:      helpful_vote
+      verified_purchase:  verified_purchase
+    required: [user_id, item_id, rating, timestamp]
+
+  products:
+    source_file: meta
+    field_map:
+      item_id:              parent_asin
+      product_title:        title
+      product_description:  description    # list[str] -> joined by loader
+      product_features:     features       # list[str]
+      brand:                store          # SEE brand_is_store NOTE BELOW
+      main_category:        main_category
+      categories:           categories     # list[str], frequently empty
+      price:                price          # frequently null
+      avg_rating_meta:      average_rating
+      rating_count_meta:    rating_number
+      details:              details        # dict[str, str]
+      seller:               null           # <-- ABSENT FROM DATASET
+    required: [item_id]
+
+  # ---------------------------------------------------------------------------
+  # HONEST NOTES ON THE SCHEMA (carried into README limitations)
+  # ---------------------------------------------------------------------------
+  notes:
+    brand_is_store: >
+      Amazon Reviews 2023 has NO `brand` field. `store` is the Amazon storefront
+      name, which usually but not always coincides with the manufacturer. We map
+      store -> brand and label the graph node type `Brand (proxy: store)`. This
+      is an approximation and is reported as such; it is not a ground-truth brand.
+    seller_absent: >
+      There is NO seller field. Per the project rule against inventing entities,
+      the heterogeneous graph therefore has NO Seller node type and no
+      `sold_by` edge. The architecture diagram must reflect this.
+    categories_sparse: >
+      `categories` is an empty list for a large share of products. `main_category`
+      is far better populated. The Category node type is built primarily from
+      main_category, with the `categories` leaf used only when non-empty.
+    price_sparse: >
+      `price` is null for a large share of products and is a string in some rows.
+      Price is treated as an optional feature with an explicit missingness
+      indicator, never imputed silently.
+    no_fraud_labels: >
+      There are NO fake-review or fraud labels. Trust scores from Module 11/12
+      are therefore UNSUPERVISED and cannot be scored against ground truth.
+      Evaluation uses synthetic injection experiments (Module 45), which must
+      always be reported as synthetic.
+
+# -----------------------------------------------------------------------------
+# CLEANING (Module 2) - thresholds only, logic lives in src/data/cleaner.py
+# -----------------------------------------------------------------------------
+cleaning:
+  rating:
+    min: 1.0
+    max: 5.0
+  timestamp:
+    # Amazon Reviews 2023 covers May 1996 - Sep 2023. Anything outside is invalid.
+    min_iso: "1996-01-01T00:00:00Z"
+    max_iso: "2023-12-31T23:59:59Z"
+    unit: ms
+  text:
+    strip_html: true
+    normalise_whitespace: true
+    unescape_entities: true
+    lowercase: false          # SBERT is cased; do NOT lowercase for embeddings
+    min_length_chars: 0       # empty reviews are kept and flagged, not dropped
+  duplicates:
+    # exact: identical (user_id, item_id, timestamp) - true ingestion dupes
+    exact_keys: [user_id, item_id, timestamp]
+    # near: same user posting identical text on different items - an anomaly
+    # SIGNAL for Module 11, so it is FLAGGED not removed.
+    flag_repeated_text_by_user: true
+  outliers:
+    # Never delete. Flag only. See Module 4.
+    action: flag
+    flag_column: outlier_flag
+
+# -----------------------------------------------------------------------------
+# PATHS - relative to project root, resolved by src/utils/config.py
+# -----------------------------------------------------------------------------
+paths:
+  raw:        data/raw
+  interim:    data/interim
+  processed:  data/processed
+  embeddings: data/embeddings
+  reports:    reports
+  figures:    reports/figures
+  tables:     reports/tables
+  results:    reports/results
+  checkpoints: checkpoints
+
+# -----------------------------------------------------------------------------
+# SPLIT (Module 22) - declared here so leakage rules are visible with the data
+# -----------------------------------------------------------------------------
+split:
+  strategy: global_temporal    # chronological, NOT random
+  train_frac: 0.80
+  val_frac:   0.10
+  test_frac:  0.10
+  # The graph used for training may contain ONLY edges with t < val_cutoff.
+  # Enforced in src/data/splitter.py and asserted in tests/test_data.py.
+  enforce_no_future_edges: true

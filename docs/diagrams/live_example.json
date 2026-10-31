@@ -1,0 +1,145 @@
+{
+  "user_id": "AHK5IQX6MXRKJDVSOPHNQ4N2CAUQ",
+  "n_train": 117,
+  "trust": 0.99592435,
+  "top": [
+    {
+      "item_id": "B00000K2R4",
+      "title": "Sega Dreamcast Console",
+      "score": 4.108148097991943,
+      "hit": false
+    },
+    {
+      "item_id": "B00000K3X9",
+      "title": "Sonic Adventure - Sega Dreamcast",
+      "score": 3.797534227371216,
+      "hit": false
+    },
+    {
+      "item_id": "B001EYUXUI",
+      "title": "Shadow The Hedgehog - PlayStation 2",
+      "score": 3.7572624683380127,
+      "hit": false
+    },
+    {
+      "item_id": "B00004S99R",
+      "title": "Shenmue",
+      "score": 3.5578088760375977,
+      "hit": false
+    },
+    {
+      "item_id": "B00002SVNY",
+      "title": "Sonic the Hedgehog",
+      "score": 3.4880738258361816,
+      "hit": false
+    }
+  ],
+  "explanation": {
+    "item_id": "B00000K2R4",
+    "text": "'Sega Dreamcast Console' was recommended because 9 high-trust users with overlapping history also bought it, it belongs to legacy systems, which dominates the user's history, and the user's recent activity is concentrated in legacy systems.",
+    "has_support": true,
+    "evidence": [
+      {
+        "kind": "similar_trusted_users",
+        "detail": "9 user(s) with overlapping history also bought this; the 5 closest have mean trust 0.94",
+        "strength": 0.9418,
+        "support": {
+          "n_peers": 9,
+          "mean_trust_of_top_peers": 0.9418,
+          "top_peer_overlap": [
+            {
+              "user_id": "AFN26M5EXYAXFMURVKCA7BQ7EZMA",
+              "shared_items": 1,
+              "trust": 0.987
+            },
+            {
+              "user_id": "AHWPBC3VCPK75CLQA745HYHOXEMA",
+              "shared_items": 2,
+              "trust": 0.9722
+            },
+            {
+              "user_id": "AGRP7KVMOUVCQ5JAJMIP3APJZ4TA",
+              "shared_items": 1,
+              "trust": 0.9339
+            },
+            {
+              "user_id": "AEU64WVRS5KO3DUCKWCAW3IXWNJQ",
+              "shared_items": 1,
+              "trust": 0.9179
+            },
+            {
+              "user_id": "AFTJTX4IBKSMLSHX5GDNA6CBKRAQ",
+              "shared_items": 1,
+              "trust": 0.8982
+            }
+          ]
+        }
+      },
+      {
+        "kind": "shared_category",
+        "detail": "96 of the user's 117 past items are in 'legacy systems', which is this product's category",
+        "strength": 0.8205,
+        "support": {
+          "category": "legacy systems",
+          "user_items_in_category": 96,
+          "user_items_total": 117
+        }
+      },
+      {
+        "kind": "recent_interaction",
+        "detail": "6 of the user's last 10 interactions are in 'legacy systems'",
+        "strength": 0.6,
+        "support": {
+          "category": "legacy systems",
+          "window": 10
+        }
+      },
+      {
+        "kind": "shared_brand",
+        "detail": "the user has bought 5 item(s) from 'SEGA' before",
+        "strength": 0.0427,
+        "support": {
+          "brand": "SEGA",
+          "user_items_from_brand": 5
+        }
+      }
+    ]
+  },
+  "confidence": {
+    "item_id": "B00000K2R4",
+    "confidence": 0.8828,
+    "components": {
+      "predictive_stability": 0.769,
+      "evidence_volume": 0.9971,
+      "evidence_trust": 0.9959
+    },
+    "reason": "117 training interaction(s), supporting-evidence trust 1.00"
+  },
+  "counterfactual": {
+    "item_id": "B07C79LP8M",
+    "current_rank": 6,
+    "target_k": 5,
+    "feasible": true,
+    "factor": "semantic_similarity",
+    "required_alpha": 0.0846,
+    "achieved_rank": 5,
+    "text": "This item is ranked 6. It would enter the Top-5 if the user's semantic similarity toward this product increased by 0.08 standard user-vector norms - the smallest change among the factors tested.",
+    "diagnostics": {
+      "factors_tested": {
+        "category_affinity": "infeasible - even alpha=5.0 only reaches rank 3652",
+        "brand_affinity": "no direction available (missing category/brand data)",
+        "semantic_similarity": {
+          "required_alpha": 0.0846,
+          "achieved_rank": 5
+        }
+      }
+    }
+  },
+  "near_miss": "B07C79LP8M",
+  "ensemble_members": 3,
+  "lines": [
+    "Live example (real run, un-curated: the evaluable user with the longest history): 'Sega Dreamcast Console' recommended to a user with 117 training interactions and trust 0.996. 9 high-trust users with overlapping history also bought",
+    "it, it belongs to legacy systems, which dominates the user's history, and the user's recent activity is concentrated in legacy systems. Held-out outcome: the top item was not a hit in the test split."
+  ],
+  "summary": "the user with the longest training history among evaluable users (117 interactions, behavioural trust 0.996) is recommended 'Sega Dreamcast Console'. 'Sega Dreamcast Console' was recommended because 9 high-trust users with overlapping history also bought it, it belongs to legacy systems, which dominates the user's history, and the user's recent activity is concentrated in legacy systems. Confidence 0.883 (117 training interaction(s), supporting-evidence trust 1.00). For the first item outside the top 5 ('Yakuza Kiwami 2: SteelBook Edition - PlayStation 4'), the counterfactual module reports: This item is ranked 6. It would enter the Top-5 if the user's semantic similarity toward this product increased by 0.08 standard user-vector norms - the smallest change among the factors tested. The top item was not a hit in the held-out test split."
+}

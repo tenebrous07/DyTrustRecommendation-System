@@ -1,0 +1,241 @@
+# =============================================================================
+# DyTrustRec - Model Configuration
+# =============================================================================
+# Component defaults for Phases 4-15. Values marked VERIFIED were measured on
+# this machine on 2026-08-24; the rest are starting points to be tuned, and no
+# claim is made about them until an experiment reports otherwise.
+# =============================================================================
+
+device: auto            # auto -> cuda, else mps, else cpu. See src/utils/device.py
+seed: 42
+
+# -----------------------------------------------------------------------------
+# MODULE 7 - SBERT semantic review embeddings
+# -----------------------------------------------------------------------------
+sbert:
+  model_name: sentence-transformers/all-MiniLM-L6-v2
+  embedding_dimension: 384      # VERIFIED against the loaded model
+  max_seq_length: 256           # VERIFIED - the model's own default
+  batch_size: 256
+  normalize_embeddings: true    # unit-norm, so dot product == cosine similarity
+  # Encoding is expensive and deterministic, so it is done once and cached to
+  # data/embeddings/. The app must never re-encode at startup.
+  cache: true
+  cache_format: npy
+  cache_dir: data/embeddings
+  # On this machine CPU beat MPS on a short-text batch (0.06s vs 0.81s for 256
+  # texts), because MPS pays warm-up and transfer costs that a 22M-parameter
+  # model does not amortise. `auto` benchmarks both once and picks the winner
+  # rather than assuming the accelerator is faster.
+  device: auto
+  # Which text goes into the encoder. Title and body are concatenated because
+  # Amazon titles carry the review's verdict ("Broke after 2 weeks").
+  text_fields: [review_title, review_text]
+  join_with: ". "
+  empty_text_policy: zero_vector   # never fabricate an embedding for empty text
+
+# -----------------------------------------------------------------------------
+# MODULE 6 - Sentiment (auxiliary feature, NOT the recommender)
+# -----------------------------------------------------------------------------
+sentiment:
+  backend: transformer
+  # BERT fine-tuned on Amazon/Yelp/etc. product reviews to predict a 1-5 star
+  # rating from text; the closest published domain match for this corpus.
+  # Frozen/inference-only, so this introduces no training-data leakage risk.
+  model_name: nlptown/bert-base-multilingual-uncased-sentiment
+  outputs: [pos, neg, neu, compound]
+  device: auto
+  batch_size: 64          # much smaller than VADER's; each item is a forward pass
+  max_length: 256
+
+# -----------------------------------------------------------------------------
+# MODULE 8 - Semantic-Behavioural Feature Fusion Layer
+# -----------------------------------------------------------------------------
+# Contribution note: feature fusion is not a new idea. What is specified here is
+# one concrete learnable projection of SBERT semantics plus behavioural and
+# trust signals into a single review-node representation, evaluated by ablation
+# against plain concatenation and against SBERT-only.
+fusion:
+  output_dimension: 128
+  hidden_dimension: 256
+  dropout: 0.2
+  activation: gelu
+  layer_norm: true
+  # Structured features concatenated onto the 384-d SBERT vector.
+  structured_features:
+    - sentiment_compound
+    - review_length_log
+    - helpful_votes_log
+    - verified_purchase_f
+    - recency_weight
+    - rating_centred          # rating minus the item's mean rating
+  # Ablation baseline: skip the MLP and concatenate raw. Set by experiment runner.
+  mode: mlp                   # mlp | concat
+
+# -----------------------------------------------------------------------------
+# MODULE 9 - Heterogeneous graph
+# -----------------------------------------------------------------------------
+graph:
+  node_types: [user, product, review, brand, category]
+  # NOTE: `seller` is absent. Amazon Reviews 2023 has no seller field, and the
+  # project rule is not to invent entities. `brand` is itself a proxy for the
+  # `store` field. Both facts are carried into the README and the viva notes.
+  edge_types:
+    - [user,     wrote,          review]
+    - [review,   about,          product]
+    - [user,     purchased,      product]
+    - [product,  belongs_to,     category]
+    - [product,  manufactured_by, brand]
+  add_reverse_edges: true       # HGT needs both directions to pass messages back
+  # Review nodes make the graph much larger. Toggle for the ablation that asks
+  # whether review nodes earn their cost over edge features alone.
+  include_review_nodes: true
+
+# -----------------------------------------------------------------------------
+# MODULE 11 - CoLA graph anomaly detection
+# -----------------------------------------------------------------------------
+# CoLA (Liu et al., 2021) is EXISTING work, not a contribution of this project.
+# Its published formulation is for homogeneous, attributed graphs, so it cannot
+# be pointed at the heterogeneous graph as-is. The adaptation below is explicit.
+cola:
+  # Step 1 - project the hetero graph down to something CoLA can consume.
+  projection: user_product_bipartite
+  # Step 2 - contrastive instance-pair training.
+  hidden_dimension: 64
+  num_layers: 1
+  dropout: 0.1
+  subgraph_size: 4              # RWR-sampled local subgraph per target node
+  negative_ratio: 1
+  epochs: 100
+  learning_rate: 0.001
+  weight_decay: 0.0
+  # Step 3 - score by averaging over repeated rounds; a single round is noisy.
+  eval_rounds: 32
+  # Honest limitation, repeated in code: this dataset has NO fraud labels, so
+  # the detector is unsupervised and cannot be validated against ground truth.
+  # It is evaluated only via the synthetic injection protocol (Module 45).
+  has_ground_truth_labels: false
+
+# -----------------------------------------------------------------------------
+# MODULE 12 - Anomaly score -> trust score
+# -----------------------------------------------------------------------------
+trust:
+  # CoLA emits an unbounded anomaly score, not a probability and not a trust
+  # value. The mapping to [0,1] is a modelling choice and is ablated.
+  normalisation: rank           # rank | minmax | zscore_sigmoid
+  transform: one_minus          # trust = 1 - normalised_anomaly
+  # Guard rail: never let trust hit exactly 0, or a trust-weighted loss would
+  # delete an interaction entirely and silently change the training set size.
+  floor: 0.05
+  ceiling: 1.0
+  # Which entity carries the score, and how it reaches an interaction.
+  scored_entity: user
+  propagate_to: interaction
+  aggregation: mean
+
+# -----------------------------------------------------------------------------
+# MODULE 13 - Temporal / dynamic interest
+# -----------------------------------------------------------------------------
+# Honesty note: this is NOT a temporal graph neural network. No TGN, TGAT or
+# temporal attention is implemented. It is exponential recency weighting on
+# edges plus periodic preference snapshots, and it is described that way
+# everywhere.
+temporal:
+  enabled: true
+  decay: exponential            # exponential | linear | none
+  # temporal_weight = exp(-lambda * age_days / 365)
+  # lambda_per_year builds the structured `recency_weight` review feature (kept at
+  # 0.5 so that feature is unchanged). loss_lambda_per_year is the decay applied to
+  # the training objective, selected on validation (0.1 .. 4 were searched; 2 was best).
+  lambda_per_year: 0.5
+  loss_lambda_per_year: 2.0
+  reference: max_train_timestamp   # never "now": that would leak the test period
+  min_weight: 0.01
+  snapshots:
+    enabled: true
+    granularity: year           # for the "interest over time" dashboard panel
+
+# -----------------------------------------------------------------------------
+# MODULE 12 - Combined edge weight
+# -----------------------------------------------------------------------------
+edge_weighting:
+  # interaction_weight = base * trust^alpha * temporal^beta
+  base: 1.0
+  trust_exponent: 1.0
+  temporal_exponent: 1.0
+  use_trust: true
+  use_temporal: true
+
+# -----------------------------------------------------------------------------
+# MODULE 14 - HGT (the recommender)
+# -----------------------------------------------------------------------------
+# HGT (Hu et al., 2020) is EXISTING work. Using it is not a contribution.
+hgt:
+  hidden_channels: 128
+  num_heads: 4
+  num_layers: 2
+  dropout: 0.1                  # selected on validation (0.4 and 0.0 were worse; 3 layers were worse)
+  use_norm: true
+  # Verified on this machine: HGTConv forward AND backward both run on mps.
+  # pyg-lib is installed, so NeighborLoader mini-batching is available.
+  output_dimension: 128
+
+# -----------------------------------------------------------------------------
+# MODULE 15 - Recommendation head
+# -----------------------------------------------------------------------------
+scoring:
+  head: dot                     # dot | mlp
+  mlp_hidden: [128, 64]
+  # Popularity debiasing is off by default so the baseline comparison is fair.
+  subtract_popularity_bias: false
+
+# -----------------------------------------------------------------------------
+# MODULE 18 - Confidence estimation
+# -----------------------------------------------------------------------------
+# A ranking score is not a confidence. These are separate quantities and are
+# computed separately.
+confidence:
+  method: mc_dropout            # mc_dropout | ensemble | heuristic
+  mc_samples: 20
+  # Final confidence blends predictive stability with how much evidence exists.
+  components:
+    predictive_stability: 0.5   # 1 - normalised variance across MC samples
+    evidence_volume: 0.3        # user interaction count, saturating
+    evidence_trust: 0.2         # mean trust of supporting neighbours
+  # Cold-start users must come out with LOW confidence even when the score is
+  # high; that behaviour is asserted in tests.
+  cold_start_penalty: true
+
+# -----------------------------------------------------------------------------
+# MODULE 23 - Cold start
+# -----------------------------------------------------------------------------
+cold_start:
+  min_interactions_for_personalised: 3
+  new_user_strategy: popularity_within_preferred_category
+  new_item_strategy: content_similarity   # SBERT over title + description
+  # Explicitly NOT claimed to be solved. Fallback quality is reported separately
+  # from warm-user metrics so the averages are not flattered.
+  report_separately: true
+
+# -----------------------------------------------------------------------------
+# MODULE 16/17 - Explainability and counterfactuals
+# -----------------------------------------------------------------------------
+explainability:
+  max_paths: 5
+  max_path_length: 3
+  evidence_sources: [shared_category, shared_brand, similar_trusted_users,
+                     recent_interaction, semantic_similarity, review_sentiment]
+  # Templates are filled ONLY from retrieved graph evidence. A template with no
+  # supporting evidence is dropped, never emitted with invented content.
+  require_evidence: true
+
+counterfactual:
+  top_k: 5
+  # Search for the smallest change that lifts an item across the Top-K boundary.
+  search: bisection
+  max_iterations: 20
+  perturbable_factors: [category_affinity, brand_affinity, recency_weight,
+                        trust_weight, semantic_similarity]
+  # If no perturbation within bounds moves the item into Top-K, say so. Do not
+  # manufacture a plausible-sounding reason.
+  report_infeasible: true

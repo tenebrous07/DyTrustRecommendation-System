@@ -1,0 +1,144 @@
+# =============================================================================
+# DyTrustRec - Analytics Configuration (Phase 2)
+# =============================================================================
+# A fifth config file beyond the four in the original brief. Justification: EDA,
+# outlier detection and graph statistics carry ~25 parameters that belong to
+# none of data / model / training / experiment cleanly, and burying them in
+# model_config.yaml (documented as "Phases 4-15") would misfile them. Recorded
+# in docs/plan.md as a deliberate addition, like src/utils/device.py.
+# =============================================================================
+
+seed: 42
+
+# -----------------------------------------------------------------------------
+# MODULE 3 - Exploratory Data Analysis
+# -----------------------------------------------------------------------------
+eda:
+  # Figures are written as PNG for the report, plus interactive HTML for the
+  # views where hovering over a point actually tells you something (time series
+  # and the long-tail curve). Everything else stays static: an interactive
+  # histogram is just a slower histogram.
+  figure_format: png
+  figure_dpi: 150
+  figure_style: seaborn-v0_8-darkgrid
+  interactive_figures: [reviews_per_month, rating_trend, category_trends, long_tail]
+
+  # "Heavy" and "inactive" are relative to this dataset, not absolute claims.
+  # Percentile-based so the labels stay meaningful across tiers.
+  heavy_user_percentile: 99
+  inactive_user_max_interactions: 5
+
+  # Which level of the hierarchical `categories` path labels a product.
+  # Measured on the dev tier: l1=2 distinct, l2=38 (platform: "playstation 4",
+  # "xbox one"), leaf=118 (product type: "games", "headsets"). main_category is
+  # 80% a single value and is used only as a last-resort fallback.
+  category_level: l2              # l1 | l2 | leaf
+  top_n_categories: 10
+  top_n_brands: 15
+  temporal_granularity: ME          # pandas offset alias: ME = month end
+  # Early Amazon years are extremely sparse and stretch every time axis. Trend
+  # panels start from the first period holding at least this share of the data.
+  trend_min_period_share: 0.001
+
+  long_tail:
+    head_fraction: 0.20             # "top 20% of items hold X% of interactions"
+
+# -----------------------------------------------------------------------------
+# MODULE 4 - Outlier detection
+# -----------------------------------------------------------------------------
+# These produce ANOMALY INDICATORS. They do not produce fraud labels. The
+# dataset has no ground truth, so nothing here may be called "fake".
+outliers:
+  # Behavioural features aggregated per user. Every one of these is computable
+  # from a single user's own history, so none of them leaks across users.
+  features:
+    - n_interactions
+    - n_distinct_items
+    - mean_rating
+    - rating_std
+    - frac_five_star
+    - frac_one_star
+    - mean_review_length
+    - reviews_per_active_day
+    - median_gap_hours
+    - min_gap_hours
+    - frac_verified
+    - frac_duplicate_text
+
+  statistical:
+    iqr:
+      enabled: true
+      multiplier: 1.5
+    zscore:
+      enabled: true
+      threshold: 3.0
+      # Behavioural counts are heavily right-skewed, so a raw z-score flags the
+      # tail of a lognormal as "anomalous" purely because it is a lognormal.
+      # log1p first, then z-score.
+      log_transform: true
+
+  isolation_forest:
+    enabled: true
+    n_estimators: 200
+    max_samples: auto
+    contamination: auto
+    random_state: 42
+    n_jobs: -1
+
+  local_outlier_factor:
+    enabled: true
+    n_neighbors: 20
+    contamination: auto
+    novelty: true                   # required so we can score unseen users
+
+  # A user is "corroborated" when several independent indicators agree. This is
+  # a ranking aid for review, NOT a verdict, and it is named accordingly.
+  consensus:
+    min_indicators: 2
+    report_top_n: 50
+
+  # Leakage control. Outlier features become model inputs in Phase 3, and any
+  # scaler or detector fitted on all data would have seen the test period.
+  # Phase 2 is exploratory so this defaults to false, but the flag is explicit
+  # rather than implied, and the fitted-scope is recorded in the output.
+  fit_on_train_split_only: false
+
+# -----------------------------------------------------------------------------
+# MODULE 3/10 - Graph analytics
+# -----------------------------------------------------------------------------
+# Applied in Phase 2 to the user-item BIPARTITE graph (the heterogeneous graph
+# does not exist until Phase 5). The same code is reused in Phase 6 on the
+# heterogeneous graph. NetworkX is used for analysis only, never at training
+# scale - see requirement 35.
+graph:
+  enabled: true
+  # Exact betweenness is O(V*E): on ~25k nodes / ~144k edges that is hours.
+  # Brandes' pivot sampling gives an unbiased estimate in seconds. Any metric
+  # computed this way is labelled `approximate: true` in the output.
+  betweenness:
+    enabled: true
+    k_samples: 500
+  closeness:
+    enabled: true
+    sample_nodes: 1000              # exact closeness is also O(V*E)
+  pagerank:
+    enabled: true
+    alpha: 0.85
+    max_iter: 100
+  communities:
+    enabled: true
+    method: louvain
+    resolution: 1.0
+  # Standard triangle clustering is identically zero on a bipartite graph
+  # (no odd cycles exist). The Latapy bipartite coefficient is used instead,
+  # and the reason is emitted with the result.
+  clustering:
+    enabled: true
+    bipartite_mode: dot
+  components:
+    enabled: true
+  assortativity:
+    enabled: true
+  # Guard: refuse to attempt exact all-pairs work above this size.
+  max_nodes_for_exact_metrics: 5000
+  top_n_by_centrality: 20

@@ -1,0 +1,228 @@
+{
+  "environment": {
+    "timestamp_utc": "2026-08-24T05:51:51+00:00",
+    "seed": 42,
+    "python": "3.12.14",
+    "git_revision": "not-a-git-repository",
+    "hardware": {
+      "platform": "macOS-26.3.1-arm64-arm-64bit",
+      "machine": "arm64",
+      "processor": "arm",
+      "cpu_count": 10,
+      "torch_threads": 4,
+      "cuda_available": false,
+      "mps_available": true,
+      "cpu_brand": "Apple M4",
+      "memory_bytes": 17179869184
+    },
+    "packages": {
+      "torch": "2.13.0",
+      "torch_geometric": "2.8.0.post1",
+      "pyg-lib": "0.8.0+pt213",
+      "numpy": "2.5.2",
+      "pandas": "3.0.5",
+      "scipy": "1.18.1",
+      "scikit-learn": "1.9.0",
+      "networkx": "3.6.1",
+      "sentence-transformers": "6.0.0",
+      "transformers": "5.15.1",
+      "nltk": "3.10.3",
+      "vaderSentiment": "3.3.2",
+      "pyarrow": "25.0.1",
+      "matplotlib": "3.11.1",
+      "plotly": "6.9.0",
+      "streamlit": "1.62.0"
+    }
+  },
+  "config": {
+    "seed": 42,
+    "eda": {
+      "figure_format": "png",
+      "figure_dpi": 150,
+      "figure_style": "seaborn-v0_8-darkgrid",
+      "interactive_figures": [
+        "reviews_per_month",
+        "rating_trend",
+        "category_trends",
+        "long_tail"
+      ],
+      "heavy_user_percentile": 99,
+      "inactive_user_max_interactions": 5,
+      "category_level": "l2",
+      "top_n_categories": 10,
+      "top_n_brands": 15,
+      "temporal_granularity": "ME",
+      "trend_min_period_share": 0.001,
+      "long_tail": {
+        "head_fraction": 0.2
+      }
+    },
+    "outliers": {
+      "features": [
+        "n_interactions",
+        "n_distinct_items",
+        "mean_rating",
+        "rating_std",
+        "frac_five_star",
+        "frac_one_star",
+        "mean_review_length",
+        "reviews_per_active_day",
+        "median_gap_hours",
+        "min_gap_hours",
+        "frac_verified",
+        "frac_duplicate_text"
+      ],
+      "statistical": {
+        "iqr": {
+          "enabled": true,
+          "multiplier": 1.5
+        },
+        "zscore": {
+          "enabled": true,
+          "threshold": 3.0,
+          "log_transform": true
+        }
+      },
+      "isolation_forest": {
+        "enabled": true,
+        "n_estimators": 200,
+        "max_samples": "auto",
+        "contamination": "auto",
+        "random_state": 42,
+        "n_jobs": -1
+      },
+      "local_outlier_factor": {
+        "enabled": true,
+        "n_neighbors": 20,
+        "contamination": "auto",
+        "novelty": true
+      },
+      "consensus": {
+        "min_indicators": 2,
+        "report_top_n": 50
+      },
+      "fit_on_train_split_only": false
+    },
+    "graph": {
+      "enabled": true,
+      "betweenness": {
+        "enabled": true,
+        "k_samples": 500
+      },
+      "closeness": {
+        "enabled": true,
+        "sample_nodes": 1000
+      },
+      "pagerank": {
+        "enabled": true,
+        "alpha": 0.85,
+        "max_iter": 100
+      },
+      "communities": {
+        "enabled": true,
+        "method": "louvain",
+        "resolution": 1.0
+      },
+      "clustering": {
+        "enabled": true,
+        "bipartite_mode": "dot"
+      },
+      "components": {
+        "enabled": true
+      },
+      "assortativity": {
+        "enabled": true
+      },
+      "max_nodes_for_exact_metrics": 5000,
+      "top_n_by_centrality": 20
+    },
+    "paths": {
+      "raw": "data/raw",
+      "interim": "data/interim",
+      "processed": "data/processed",
+      "embeddings": "data/embeddings",
+      "reports": "reports",
+      "figures": "reports/figures",
+      "tables": "reports/tables",
+      "results": "reports/results"
+    }
+  },
+  "phase": "2-eda-outliers-graph",
+  "eda_summary": {
+    "n_interactions": 144178,
+    "n_users": 17223,
+    "interactions_per_user_mean": 8.371247750101608,
+    "interactions_per_user_median": 6.0,
+    "interactions_per_user_max": 185,
+    "heavy_users_p99": 178,
+    "heavy_user_threshold_p99": 35.0,
+    "users_with_le_5_interactions": 5664,
+    "mean_rating_given": 4.295813009989896,
+    "users_with_zero_rating_variance": 4159,
+    "n_items": 7692,
+    "interactions_per_item_mean": 18.743889755590224,
+    "interactions_per_item_median": 10.0,
+    "interactions_per_item_max": 656,
+    "share_held_by_top_20%_items": 0.5946815741652679,
+    "popularity_gini": 0.5206053273966607,
+    "mean_rating_overall": 4.293303966522217,
+    "share_five_star": 0.6475814618041588,
+    "review_length_mean_chars": 507.5153005312877,
+    "review_length_median_chars": 155.0,
+    "share_verified_purchase": 0.783871325722371,
+    "verified_minus_unverified_rating": 0.5028064250946045,
+    "first_interaction": "1999-11-18",
+    "last_interaction": "2023-08-29",
+    "n_active_months": 286,
+    "peak_month": "2014-12-31",
+    "peak_month_interactions": 2305,
+    "n_categories": 39,
+    "mean_user_category_drift": 0.43342841220262496,
+    "density": 0.0010883057397427988
+  },
+  "outlier_summary": {
+    "n_users_scored": 17223,
+    "n_flagged_iqr": 9457,
+    "n_flagged_zscore": 2441,
+    "n_flagged_iforest": 1695,
+    "n_flagged_lof": 543,
+    "n_corroborated": 3218,
+    "corroborated_share": 0.18684317482436277,
+    "min_indicators_for_corroboration": 2
+  },
+  "graph_metrics": {
+    "n_nodes": 24915,
+    "n_edges": 144178,
+    "density": 0.00046454163148040416,
+    "mean_degree": 11.57359020670279,
+    "n_user_nodes": 17223,
+    "n_item_nodes": 7692,
+    "bipartite_density": 0.0010883057397427988,
+    "degree_min": 5.0,
+    "degree_median": 7.0,
+    "degree_mean": 11.57359020670279,
+    "degree_p99": 83.0,
+    "degree_max": 656.0,
+    "n_connected_components": 1,
+    "largest_component_nodes": 24915,
+    "largest_component_share": 1.0,
+    "bipartite_clustering_mean": 0.05831475427202677,
+    "triangle_clustering_mean": 0.0,
+    "pagerank_max": 0.0020455378743872575,
+    "closeness_mean": 0.23761991885429115,
+    "n_communities": 11,
+    "largest_community_nodes": 5261,
+    "median_community_nodes": 2037,
+    "modularity": 0.45821501900949246,
+    "degree_assortativity": -0.13731967411952672
+  },
+  "graph_timings_seconds": {
+    "connected_components": 0.01939108269289136,
+    "bipartite_clustering": 20.209433041047305,
+    "pagerank": 0.09190412517637014,
+    "betweenness": 40.657976916991174,
+    "closeness_sampled": 21.913430666085333,
+    "louvain_communities": 1.8482341659255326,
+    "assortativity": 0.17419175012037158
+  }
+}

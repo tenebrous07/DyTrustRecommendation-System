@@ -1,0 +1,988 @@
+<title>DyTrustRec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&display=swap">
+
+<style>
+:root{
+  --ink:#111A22; --paper:#EBEFF2; --surface:#F6F8F9; --surface-2:#E1E7EB;
+  --rule:#C6D0D7; --rule-soft:#D9E1E6;
+  --text:#111A22; --text-2:#3D4A55; --graphite:#5C6873;
+  --signal:#0D7A85; --signal-soft:#D3E6E8;
+  --refuted:#B23A2F; --refuted-soft:#F0D8D5;
+  --confirmed:#4C7A3E; --confirmed-soft:#DCE7D7;
+  --amber:#9A6B12;
+  --display:"IBM Plex Sans Condensed",-apple-system,"Segoe UI",sans-serif;
+  --body:"Newsreader",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --measure:66ch; --wide:1080px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#E6ECF0; --paper:#0C1319; --surface:#131C24; --surface-2:#1B262F;
+    --rule:#2B3843; --rule-soft:#222E38;
+    --text:#DEE6EC; --text-2:#A9B6C1; --graphite:#8695A2;
+    --signal:#5CBFC7; --signal-soft:#123138;
+    --refuted:#E5786A; --refuted-soft:#3A1D19;
+    --confirmed:#8FBB7E; --confirmed-soft:#1E2C19;
+    --amber:#D6A44C;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E6ECF0; --paper:#0C1319; --surface:#131C24; --surface-2:#1B262F;
+  --rule:#2B3843; --rule-soft:#222E38;
+  --text:#DEE6EC; --text-2:#A9B6C1; --graphite:#8695A2;
+  --signal:#5CBFC7; --signal-soft:#123138;
+  --refuted:#E5786A; --refuted-soft:#3A1D19;
+  --confirmed:#8FBB7E; --confirmed-soft:#1E2C19;
+  --amber:#D6A44C;
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--paper); color:var(--text);
+  font-family:var(--body); font-size:18px; line-height:1.62;
+  font-optical-sizing:auto; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:var(--wide); margin:0 auto; padding:0 28px 120px;}
+
+/* ---------- masthead ---------- */
+.masthead{padding:64px 0 40px; border-bottom:2px solid var(--ink);}
+.eyebrow{
+  font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--graphite); margin:0 0 20px;
+}
+h1{
+  font-family:var(--display); font-weight:700; font-size:clamp(3rem,8vw,5.5rem);
+  line-height:.94; letter-spacing:-.02em; margin:0 0 6px; text-wrap:balance;
+}
+.subtitle{
+  font-family:var(--display); font-weight:500; font-size:clamp(1.05rem,2.4vw,1.5rem);
+  color:var(--text-2); margin:0 0 32px; max-width:34ch; line-height:1.25;
+}
+.standfirst{font-size:1.2rem; max-width:var(--measure); color:var(--text-2); margin:0;}
+.standfirst strong{color:var(--text); font-weight:600;}
+
+.facts{
+  display:flex; flex-wrap:wrap; gap:0; margin:36px 0 0;
+  border-top:1px solid var(--rule);
+}
+.fact{
+  flex:1 1 150px; padding:16px 18px 16px 0; border-right:1px solid var(--rule-soft);
+}
+.fact:last-child{border-right:0;}
+.fact dt{
+  font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--graphite); margin:0 0 6px;
+}
+.fact dd{
+  font-family:var(--display); font-weight:600; font-size:1.5rem; margin:0;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- layout ---------- */
+.shell{display:grid; grid-template-columns:1fr; gap:0;}
+@media (min-width:1000px){
+  .shell{grid-template-columns:190px minmax(0,1fr); gap:52px; align-items:start;}
+  .rail{position:sticky; top:0; padding:48px 0; max-height:100vh; overflow-y:auto;}
+}
+.rail{display:none;}
+@media (min-width:1000px){.rail{display:block;}}
+.rail ol{list-style:none; margin:0; padding:0;}
+.rail a{
+  display:block; padding:5px 0; font-family:var(--mono); font-size:11px;
+  color:var(--graphite); text-decoration:none; border-left:2px solid transparent;
+  padding-left:11px; line-height:1.35;
+}
+.rail a:hover,.rail a:focus-visible{color:var(--signal); border-left-color:var(--signal);}
+.rail .rail-h{
+  font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--text); margin:0 0 12px; padding-left:11px;
+}
+
+main{min-width:0; padding-top:48px;}
+section{margin:0 0 68px; scroll-margin-top:24px;}
+h2{
+  font-family:var(--display); font-weight:700; font-size:clamp(1.7rem,3.6vw,2.4rem);
+  line-height:1.08; letter-spacing:-.015em; margin:0 0 4px; text-wrap:balance;
+}
+.sec-mark{
+  font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--signal); display:block; margin:0 0 10px;
+}
+h3{
+  font-family:var(--display); font-weight:600; font-size:1.22rem; letter-spacing:-.005em;
+  margin:34px 0 8px; text-wrap:balance;
+}
+h4{
+  font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--graphite); font-weight:600; margin:26px 0 8px;
+}
+p{max-width:var(--measure); margin:0 0 16px;}
+ul,ol{max-width:var(--measure); padding-left:20px; margin:0 0 16px;}
+li{margin:0 0 8px;}
+a{color:var(--signal);}
+strong{font-weight:600;}
+code{
+  font-family:var(--mono); font-size:.82em; background:var(--surface-2);
+  padding:1px 5px; border-radius:2px; color:var(--text);
+}
+.lede{font-size:1.1rem; color:var(--text-2); max-width:var(--measure);}
+.update-note{
+  max-width:var(--measure); margin:0 0 16px; padding:12px 16px;
+  background:var(--surface-2); border-left:3px solid var(--amber);
+  font-family:var(--display); font-size:.92rem; color:var(--text-2);
+}
+.update-note .eyebrow-inline{
+  font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--amber); display:block; margin:0 0 4px;
+}
+
+/* ---------- panels ---------- */
+.panel{
+  background:var(--surface); border:1px solid var(--rule);
+  padding:22px 24px; margin:24px 0;
+}
+.panel-refuted{border-left:3px solid var(--refuted);}
+.panel-confirmed{border-left:3px solid var(--confirmed);}
+.panel-signal{border-left:3px solid var(--signal);}
+.panel h4{margin-top:0;}
+.panel p:last-child,.panel ul:last-child{margin-bottom:0;}
+
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto; margin:20px 0; border:1px solid var(--rule); background:var(--surface);}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:520px;}
+caption{
+  text-align:left; font-family:var(--mono); font-size:10px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--graphite); padding:12px 14px 0;
+}
+th,td{padding:8px 14px; text-align:left; border-bottom:1px solid var(--rule-soft);}
+thead th{
+  font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--graphite); font-weight:600; border-bottom:1px solid var(--rule);
+  white-space:nowrap; background:var(--surface-2);
+}
+td{font-family:var(--body);}
+.num{text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; font-size:13px;}
+.mono td,td.mono,.mono{font-family:var(--mono); font-size:12.5px;}
+tbody tr:last-child td{border-bottom:0;}
+tr.hi td{background:var(--signal-soft);}
+tr.bad td{background:var(--refuted-soft);}
+.pos{color:var(--confirmed); font-weight:600;}
+.neg{color:var(--refuted); font-weight:600;}
+
+/* ---------- chance-line chart ---------- */
+.chart{
+  margin:26px 0; border:1px solid var(--rule); background:var(--surface); padding:22px 24px 16px;
+}
+.chart-title{
+  font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--graphite); margin:0 0 20px;
+}
+.bar-row{display:grid; grid-template-columns:minmax(120px,190px) 1fr 58px; gap:14px;
+  align-items:center; margin:0 0 11px;}
+.bar-lab{font-family:var(--mono); font-size:11.5px; color:var(--text-2); line-height:1.3;}
+.bar-track{position:relative; height:20px; background:var(--surface-2);}
+.bar-fill{position:absolute; left:0; top:0; bottom:0; background:var(--signal);}
+.bar-fill.below{background:var(--refuted);}
+.chance{
+  position:absolute; top:-6px; bottom:-6px; left:50%; width:0;
+  border-left:2px dashed var(--ink); opacity:.65;
+}
+.bar-val{font-family:var(--mono); font-size:12px; font-variant-numeric:tabular-nums;
+  text-align:right; color:var(--text);}
+.chart-axis{
+  display:grid; grid-template-columns:minmax(120px,190px) 1fr 58px; gap:14px;
+  margin-top:12px; font-family:var(--mono); font-size:10px; color:var(--graphite);
+}
+.axis-in{display:flex; justify-content:space-between;}
+.chance-note{
+  font-family:var(--mono); font-size:10.5px; color:var(--graphite);
+  margin:14px 0 0; padding-top:12px; border-top:1px solid var(--rule-soft);
+}
+
+/* diverging delta chart */
+.d-row{display:grid; grid-template-columns:minmax(150px,230px) 1fr 62px; gap:14px;
+  align-items:center; margin:0 0 11px;}
+.d-track{position:relative; height:20px; background:var(--surface-2);}
+.d-zero{position:absolute; top:-6px; bottom:-6px; left:50%; width:0; border-left:2px solid var(--ink); opacity:.55;}
+.d-fill{position:absolute; top:0; bottom:0;}
+.d-fill.p{background:var(--confirmed); left:50%;}
+.d-fill.n{background:var(--refuted); right:50%;}
+
+/* ---------- pipeline ---------- */
+.phase{
+  display:grid; grid-template-columns:38px minmax(0,1fr); gap:16px;
+  padding:15px 0; border-bottom:1px solid var(--rule-soft); align-items:start;
+}
+.phase:last-child{border-bottom:0;}
+.phase-n{
+  font-family:var(--mono); font-size:12px; color:var(--signal); font-weight:600;
+  padding-top:2px; font-variant-numeric:tabular-nums;
+}
+.phase-b h4{margin:0 0 3px; color:var(--text); font-size:12px; letter-spacing:.06em;}
+.phase-b p{margin:0 0 5px; font-size:15px; max-width:60ch;}
+.phase-f{font-family:var(--mono); font-size:11px; color:var(--graphite);}
+
+/* ---------- misc ---------- */
+.kv{display:grid; grid-template-columns:auto 1fr; gap:5px 18px; font-size:15px;
+  max-width:var(--measure); margin:16px 0;}
+.kv dt{font-family:var(--mono); font-size:11.5px; color:var(--graphite); padding-top:4px;}
+.kv dd{margin:0;}
+pre{
+  background:var(--ink); color:var(--paper); padding:15px 18px; overflow-x:auto;
+  font-family:var(--mono); font-size:12.5px; line-height:1.55; margin:16px 0; border-radius:0;
+}
+:root[data-theme="dark"] pre,
+:root:not([data-theme="light"]) pre{background:var(--surface-2); color:var(--text);}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) pre{background:var(--ink); color:#EBEFF2;}}
+.tag{
+  display:inline-block; font-family:var(--mono); font-size:9.5px; letter-spacing:.1em;
+  text-transform:uppercase; padding:3px 7px; border:1px solid currentColor; margin-right:6px;
+}
+.tag-r{color:var(--refuted);} .tag-c{color:var(--confirmed);} .tag-s{color:var(--signal);}
+.foot{border-top:2px solid var(--ink); margin-top:60px; padding-top:22px;
+  font-family:var(--mono); font-size:11px; color:var(--graphite); max-width:var(--measure);}
+:focus-visible{outline:2px solid var(--signal); outline-offset:2px;}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important;}}
+</style>
+<div style="margin:0;padding:14px 20px;background:#fff3cd;border-bottom:2px solid #c77d2e;font:14px/1.5 system-ui,sans-serif;color:#3a2a00"><strong>Superseded.</strong> This report describes the <em>first</em> version of the study (single seed, untuned baselines, trust and recency weights that never reached the model). Its results and conclusions were withdrawn after an audit. The current results are in <code>README.md</code>, <code>reports/tables/model_comparison.md</code> and <code>docs/DyTrustRec_Research_Paper.pdf</code>.</div>
+
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">Technical report · Amazon Reviews 2023 · single seed</p>
+  <h1>DyTrustRec</h1>
+  <p class="subtitle">Dynamic Trust-Aware Explainable Heterogeneous Graph Recommendation</p>
+  <p class="standfirst">A complete, reproducible recommender pipeline — ingestion through dashboard — built to test one hypothesis: that a graph anomaly detector can supply a useful <strong>trust</strong> signal for recommendation. It was measured properly, and <strong>the hypothesis was refuted</strong>. This document explains the whole system and exactly how it failed.</p>
+
+  <dl class="facts">
+    <div class="fact"><dt>Phases built</dt><dd>18 / 18</dd></div>
+    <div class="fact"><dt>Tests passing</dt><dd>229</dd></div>
+    <div class="fact"><dt>Python</dt><dd>11,654 ln</dd></div>
+    <div class="fact"><dt>Interactions</dt><dd>144,178</dd></div>
+    <div class="fact"><dt>Trust AUC</dt><dd style="color:var(--refuted)">0.295</dd></div>
+  </dl>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Contents">
+    <p class="rail-h">Contents</p>
+    <ol>
+      <li><a href="#thesis">A · Thesis</a></li>
+      <li><a href="#findings">B · Findings</a></li>
+      <li><a href="#env">C · Environment</a></li>
+      <li><a href="#data">D · Dataset</a></li>
+      <li><a href="#schema">E · Real schema</a></li>
+      <li><a href="#clean">F · Cleaning</a></li>
+      <li><a href="#eda">G · What the data says</a></li>
+      <li><a href="#split">H · Splitting</a></li>
+      <li><a href="#leak">I · Leakage control</a></li>
+      <li><a href="#feat">J · Features</a></li>
+      <li><a href="#graph">K · The graph</a></li>
+      <li><a href="#cola">L · CoLA &amp; trust</a></li>
+      <li><a href="#hgt">M · HGT</a></li>
+      <li><a href="#base">N · Baselines</a></li>
+      <li><a href="#eval">O · Evaluation</a></li>
+      <li><a href="#results">P · Results</a></li>
+      <li><a href="#ablation">Q · Ablation</a></li>
+      <li><a href="#trustfail">R · Why trust failed</a></li>
+      <li><a href="#xai">S · Explanations</a></li>
+      <li><a href="#cf">T · Counterfactuals</a></li>
+      <li><a href="#conf">U · Confidence</a></li>
+      <li><a href="#defects">V · Defects found</a></li>
+      <li><a href="#limits">W · Limitations</a></li>
+      <li><a href="#run">X · Running it</a></li>
+      <li><a href="#files">Y · File map</a></li>
+      <li><a href="#viva">Z · Viva answers</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+<section id="thesis">
+  <span class="sec-mark">A</span>
+  <h2>The thesis, and what was actually tested</h2>
+  <p class="lede">A conventional recommender answers one question: what will this user like? It cannot say why it believes that, how much of its evidence comes from reviews that may be manipulated, or whether the user's taste has since moved on.</p>
+  <p>DyTrustRec treats a user–item interaction not as a fact but as <em>evidence of varying reliability and varying age</em>. Four claims were built into the design, and each was made falsifiable:</p>
+  <ol>
+    <li><strong>Semantics help.</strong> Review text, encoded with SBERT, carries preference signal that IDs alone do not.</li>
+    <li><strong>Trust helps.</strong> An unsupervised graph anomaly detector (CoLA) can identify unreliable interactions, and down-weighting them improves ranking.</li>
+    <li><strong>Recency helps.</strong> Interest drifts, so recent interactions deserve more weight.</li>
+    <li><strong>A learned fusion of semantic and behavioural features beats plain concatenation.</strong></li>
+  </ol>
+  <p>Claim 1 held, more strongly than before. <strong>Claims 2, 3 and 4 were refuted</strong> — recency no longer helps even in combination with trust — and claim 2 failed in a particularly informative way: the trust signal turned out to be <em>anti</em>-correlated with the manipulation it was designed to catch. A fifth, unplanned result sits alongside them: weighting the training loss by that same (inverted) trust signal <em>improved</em> ranking substantially, which section Q reports without a settled explanation.</p>
+
+  <div class="panel panel-signal">
+    <h4>What is and is not novel here</h4>
+    <p>HGT (Hu et al., 2020), SBERT (Reimers &amp; Gurevych, 2019), CoLA (Liu et al., 2021), BPR (Rendle et al., 2009) and LightGCN (He et al., 2020) are all existing published work. <strong>None of them is a contribution of this project.</strong> The contribution is their integration into one pipeline, the specific trust transformation, and — above all — the experimental evaluation that determined whether any of it works.</p>
+  </div>
+</section>
+
+<section id="findings">
+  <span class="sec-mark">B</span>
+  <h2>Findings, stated up front</h2>
+  <p>Every number below comes from a real run on the dev tier, seed 42. Nothing is projected or estimated.</p>
+
+  <div class="panel panel-confirmed">
+    <h4><span class="tag tag-c">Confirmed</span> SBERT semantics improve ranking</h4>
+    <p>Adding SBERT review embeddings to the plain HGT lifted NDCG@10 from 0.0133 to 0.0164 — <strong class="pos">+23.6%</strong>. This is the clearest positive effect measured, and the largest in the project.</p>
+  </div>
+
+  <div class="panel panel-confirmed">
+    <h4><span class="tag tag-c">Confirmed</span> Graph models buy catalogue reach</h4>
+    <p>HGT arms recommend across <strong>23–34%</strong> of the catalogue against matrix factorisation's 7% and popularity's 0.2%, at markedly higher novelty. If the objective includes discovery rather than NDCG alone, that trade is real and measurable.</p>
+  </div>
+
+  <div class="panel panel-refuted">
+    <h4><span class="tag tag-r">Refuted</span> The trust component is worse than a coin flip</h4>
+    <p>Against synthetically injected shill campaigns, CoLA-derived trust scored <strong class="neg">0.2951 ROC AUC</strong> — below the 0.5 chance line. It ranks injected shills as <em>more</em> trustworthy than genuine users. A one-line rule counting duplicated review text scores <strong>0.9895</strong> on the same data.</p>
+  </div>
+
+  <div class="panel panel-refuted">
+    <h4><span class="tag tag-r">Refuted</span> Recency and trust do not help, even together</h4>
+    <p>Trust alone cost <strong class="neg">−17.1%</strong> NDCG@10; recency alone was <strong class="neg">−4.8%</strong>; combined they cost <strong class="neg">−11.6%</strong>. The earlier reading — that they help only in combination — did not survive the sentiment-model swap (section J); with fresh features, neither the individual nor the combined effect is positive.</p>
+  </div>
+
+  <div class="panel panel-refuted">
+    <h4><span class="tag tag-r">Refuted</span> The learned fusion layer hurts</h4>
+    <p>The learned Semantic-Behavioural Fusion Layer cost <strong class="neg">−27.7%</strong> NDCG@10 against plain concatenation. Not demonstrated to work on this data.</p>
+  </div>
+
+  <div class="panel panel-signal">
+    <h4><span class="tag tag-s">Unsettled</span> The trust-weighted objective now helps, a lot</h4>
+    <p>Weighting the BPR loss by the same CoLA trust scores that the panel above shows are inverted <em>improved</em> NDCG@10 by <strong class="pos">+43.8%</strong> over the fusion arm (0.0105 → 0.0151) — the opposite of what was found before the sentiment-model swap. It is the largest single delta in the ablation grid after SBERT. Section Q states this plainly rather than explaining it away; no mechanism for it is confirmed.</p>
+  </div>
+
+  <div class="panel panel-refuted">
+    <h4><span class="tag tag-r">Refuted</span> No graph arm beat matrix factorisation</h4>
+    <p>Plain BPR-MF scored 0.0180 NDCG@10; the best HGT arm (B, SBERT only) reached 0.0164 — a clearer gap than before, not a narrower one.</p>
+  </div>
+</section>
+
+<section id="env">
+  <span class="sec-mark">C</span>
+  <h2>The machine, and how it shaped every decision</h2>
+  <p>The environment was measured before any code was written, and three findings changed the architecture rather than merely being recorded.</p>
+
+  <dl class="kv">
+    <dt>Hardware</dt><dd>Apple M4, 10 cores (4P/6E), 16 GB unified memory</dd>
+    <dt>Free disk</dt><dd>30 GB — the binding constraint on dataset choice</dd>
+    <dt>Accelerator</dt><dd>No CUDA. Metal Performance Shaders (MPS) available</dd>
+    <dt>Python</dt><dd>3.12.14 in a uv-managed venv (system Python was 3.9.6)</dd>
+    <dt>torch / PyG</dt><dd>2.13.0 / 2.8.0.post1</dd>
+    <dt>pyg-lib</dt><dd>0.8.0+pt213 — <code>cp310-abi3</code> arm64 wheel</dd>
+  </dl>
+
+  <h3>Three findings that changed the design</h3>
+  <p><strong>1. No arm64 wheels exist for <code>torch-scatter</code> or <code>torch-sparse</code>.</strong> The project is therefore written not to need them — PyG's pure-Python layers cover everything used here.</p>
+  <p><strong>2. But <code>pyg-lib</code> does have an arm64 macOS wheel</strong> for this exact torch build. Without it PyG raises <code>ImportError: 'NeighborSampler' requires either 'pyg-lib' or 'torch-sparse'</code> and mini-batch training on a heterogeneous graph is impossible. Installing it unlocked <code>NeighborLoader</code>.</p>
+  <p><strong>3. Electronics does not fit.</strong> At 21.06 GB of reviews plus 4.89 GB of metadata against 30 GB free, the category the brief preferred cannot be materialised. That forced the three-tier design in section D.</p>
+</section>
+
+<section id="data">
+  <span class="sec-mark">D</span>
+  <h2>Dataset and the three-tier design</h2>
+  <p>Amazon Reviews 2023 (McAuley Lab, UCSD) — an existing public dataset, downloaded at run time, never modified, never redistributed. Sizes below are real <code>Content-Length</code> values from the HuggingFace CDN, not estimates.</p>
+
+  <div class="scroll">
+    <table>
+      <caption>Configured tiers</caption>
+      <thead><tr><th>Tier</th><th>Category</th><th class="num">Reviews</th><th class="num">Metadata</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">smoke</td><td>All_Beauty</td><td class="num">0.30 GB</td><td class="num">0.20 GB</td><td>CI and wiring checks</td></tr>
+        <tr class="hi"><td class="mono">dev</td><td>Video_Games</td><td class="num">2.50 GB</td><td class="num">0.41 GB</td><td><strong>Default — all results here</strong></td></tr>
+        <tr><td class="mono">full</td><td>Electronics</td><td class="num">21.06 GB</td><td class="num">4.89 GB</td><td>Streamed only; exceeds disk</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Sampling, and declaring its bias</h3>
+  <p>Three strategies are implemented, and each records what it does to representativeness in the run manifest:</p>
+  <ul>
+    <li><code>head</code> — first N records. Cheap, and <strong>biased</strong>: the files are not shuffled, so a prefix over-represents whoever appears early.</li>
+    <li><code>reservoir</code> — uniform over interactions. Unbiased per interaction, but it fragments user histories, which distorts the recency signal.</li>
+    <li><code>user_core</code> <em>(default)</em> — uniform over <em>users</em>, keeping every interaction of each sampled user. Preserves complete histories, which temporal modelling depends on.</li>
+  </ul>
+  <p>A row cap is spent user-by-user: a user is either fully in or fully out. Truncating the record stream mid-user would hand later users artificially short histories — precisely the signal the temporal component reads.</p>
+</section>
+
+<section id="schema">
+  <span class="sec-mark">E</span>
+  <h2>The real schema, and three fields that do not exist</h2>
+  <p>Actual records were fetched from the CDN and inspected rather than assumed. Three fields the design originally expected are simply absent, and each absence propagates into the architecture.</p>
+
+  <div class="scroll">
+    <table>
+      <caption>Expected vs actual</caption>
+      <thead><tr><th>Expected field</th><th>Reality</th><th>Consequence</th></tr></thead>
+      <tbody>
+        <tr class="bad"><td class="mono">brand</td><td><strong>Absent.</strong> Closest is <code>store</code>, the storefront name</td><td>Brand nodes labelled <em>Brand (proxy: store)</em></td></tr>
+        <tr class="bad"><td class="mono">seller</td><td><strong>Absent entirely</strong></td><td><strong>No Seller node type and no <code>sold_by</code> edge</strong></td></tr>
+        <tr class="bad"><td class="mono">fraud labels</td><td><strong>Absent</strong></td><td>Trust is unsupervised; validated only synthetically</td></tr>
+        <tr><td class="mono">price</td><td>Null for 25.5% of products; sometimes a currency string or a range</td><td>Never imputed; a <code>price_missing</code> indicator is carried</td></tr>
+        <tr><td class="mono">categories</td><td>A hierarchical <em>path</em>, populated for 97.5% of products</td><td>Replaced <code>main_category</code> as the Category node source</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>The category discovery</h3>
+  <p><code>main_category</code> is 80% a single value ("Video Games") inside a single-category corpus — nearly useless as a node type. But <code>categories</code> is a root-to-leaf path, and its levels turned out to be <strong>orthogonal, not merely coarse-to-fine</strong>:</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Level</th><th class="num">Distinct</th><th>What it encodes</th><th>Examples</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">L1</td><td class="num">2</td><td>Domain</td><td class="mono">video games</td></tr>
+        <tr class="hi"><td class="mono">L2</td><td class="num">38</td><td><strong>Platform</strong></td><td class="mono">playstation 4, xbox one, nintendo switch</td></tr>
+        <tr><td class="mono">leaf</td><td class="num">118</td><td><strong>Product type</strong></td><td class="mono">games, headsets, gamepads</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Platform and product type are different preference axes, so which belongs on the Category node is an empirical question. It became a config parameter (<code>category_level: l1|l2|leaf</code>, default L2) rather than a hardcoded guess.</p>
+
+  <div class="panel panel-signal">
+    <h4>The governing rule</h4>
+    <p>A field that does not exist is <strong>reported as absent, never invented</strong>. The schema adapter returns an explicit availability report, and downstream modules degrade rather than fabricate. This is why the graph has five node types, not six.</p>
+  </div>
+</section>
+
+<section id="clean">
+  <span class="sec-mark">F</span>
+  <h2>Cleaning: remove the uninterpretable, flag the suspicious</h2>
+  <p>The governing distinction: a record is <em>invalid</em> when it cannot be interpreted at all, and <em>suspicious</em> when it merely looks odd. These get opposite treatment.</p>
+
+  <div class="scroll">
+    <table>
+      <caption>Cleaning pipeline — dev tier</caption>
+      <thead><tr><th>Step</th><th class="num">Before</th><th class="num">After</th><th class="num">Removed</th></tr></thead>
+      <tbody>
+        <tr><td>normalise IDs</td><td class="num">262,547</td><td class="num">262,547</td><td class="num">0</td></tr>
+        <tr><td>drop null keys</td><td class="num">262,547</td><td class="num">262,547</td><td class="num">0</td></tr>
+        <tr><td>validate ratings [1,5]</td><td class="num">262,547</td><td class="num">262,547</td><td class="num">0</td></tr>
+        <tr><td>validate timestamps</td><td class="num">262,547</td><td class="num">262,547</td><td class="num">0</td></tr>
+        <tr><td>deduplicate exact</td><td class="num">262,547</td><td class="num">257,497</td><td class="num">5,050</td></tr>
+        <tr><td>collapse repeat (user,item)</td><td class="num">257,497</td><td class="num">255,021</td><td class="num">2,476</td></tr>
+        <tr class="hi"><td><strong>flag suspicious</strong></td><td class="num">255,021</td><td class="num">255,021</td><td class="num"><strong>0</strong></td></tr>
+        <tr><td>k-core filter (5/5)</td><td class="num">255,021</td><td class="num">144,178</td><td class="num">110,843</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Final: <strong>144,178 interactions, 17,223 users, 7,692 items</strong> — 54.9% retention. 39,261 rows (27.2%) carry an <code>outlier_flag</code> with an explicit reason string, and <strong>none of them were deleted</strong>.</p>
+
+  <div class="panel panel-signal">
+    <h4>Why suspicious rows are kept</h4>
+    <p>The anomaly detector cannot find what the cleaner already removed. Deleting shill-like rows here would both destroy the evidence and flatter the trust component's later results. Five rule-based flags are attached — empty text, extreme length, text repeated across items, review bursts under 60 s, zero rating variance — each with a stated reason.</p>
+  </div>
+
+  <div class="panel panel-refuted">
+    <h4>Disclosed, not hidden: k-core selection leakage</h4>
+    <p>k-core filtering uses interaction counts over the <em>whole</em> timeline, including the test period. This is standard practice in the recommender-systems literature, but it is a mild form of selection leakage. It is recorded in every cleaning report and can be disabled in config.</p>
+  </div>
+</section>
+
+<section id="eda">
+  <span class="sec-mark">G</span>
+  <h2>What the data actually says</h2>
+  <p>These are descriptive statistics of the corpus, not model results. Several of them set the bar the models had to clear.</p>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Measurement</th><th class="num">Value</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr><td>Popularity Gini</td><td class="num">0.521</td><td>Top 20% of items hold 59.5% of interactions — a popularity baseline will be strong</td></tr>
+        <tr><td>5-star share</td><td class="num">64.8%</td><td>Mean 4.29. Rating is a feature, not a graded relevance label</td></tr>
+        <tr><td>Verified purchases</td><td class="num">78.4%</td><td>They rate <strong>+0.503 stars</strong> differently — supports using it as a trust input</td></tr>
+        <tr class="hi"><td><strong>Per-user category drift</strong></td><td class="num"><strong>0.433</strong></td><td>Total-variation distance, first vs second half of each history — the <em>measured</em> premise for temporal weighting</td></tr>
+        <tr><td>Connected components</td><td class="num">1</td><td>100% of nodes — cold start is genuinely new-user, not disconnection</td></tr>
+        <tr><td>Louvain modularity</td><td class="num">0.458</td><td>11 communities — real structure a graph model can exploit that MF cannot</td></tr>
+        <tr><td>Degree assortativity</td><td class="num">−0.137</td><td>Disassortative: active users attach to popular items</td></tr>
+        <tr><td>Bipartite clustering</td><td class="num">0.058</td><td>Triangle clustering is 0 <em>by construction</em> — no odd cycles exist in a bipartite graph</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel panel-confirmed">
+    <h4>The drift number is independently corroborated</h4>
+    <p>The category-share plot shows "legacy systems" falling from 0.88 to about 0.2 of interactions, with <strong>Nintendo Switch appearing as a step in 2017</strong> and <strong>PlayStation 5 in 2020</strong> — matching the actual console launches. Temporal weighting is modelling something demonstrably present in this data, not something assumed.</p>
+  </div>
+
+  <h3>Two statistical caveats carried in the reports</h3>
+  <p><strong>IQR alone flags 54.9% of users.</strong> That is a multiple-comparisons artefact — the rule fires when any of 12 features leaves its fence — not a finding. The corroborated count (18.7%, ≥2 independent layers agreeing) is the number to quote.</p>
+  <p><strong>Isolation Forest and LOF agree on only 6.2% of flags</strong> (Jaccard). Expected, since they model different notions of outlyingness, and precisely why a consensus count exists rather than a single detector.</p>
+</section>
+
+<section id="split">
+  <span class="sec-mark">H</span>
+  <h2>Chronological splitting</h2>
+  <p>Random splitting leaks the future into the past: a model gets trained on a user's 2023 purchase and evaluated on their 2019 one. Every split here is by <em>time</em>.</p>
+  <div class="scroll">
+    <table>
+      <caption>global_temporal split, 80 / 10 / 10</caption>
+      <thead><tr><th>Partition</th><th class="num">Rows</th><th>Boundary</th></tr></thead>
+      <tbody>
+        <tr><td>train</td><td class="num">115,342</td><td class="mono">→ 2019-02-02</td></tr>
+        <tr><td>validation</td><td class="num">14,418</td><td class="mono">2019-02-02 → 2020-07-27</td></tr>
+        <tr><td>test</td><td class="num">14,418</td><td class="mono">2020-07-27 →</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The cost of this strictness is visible and is reported rather than hidden: <strong>42.3% of test rows have a user unseen in training</strong> and <strong>59.7% have an unseen item</strong>. Those rows cannot be scored by a collaborative model at all, which is why only <strong>1,862 of 17,223 users</strong> are ultimately evaluable. That is a property of an honest temporal protocol, and it makes every metric noisier than a random split would suggest.</p>
+</section>
+
+<section id="leak">
+  <span class="sec-mark">I</span>
+  <h2>Leakage control</h2>
+  <p>Six specific guarantees, each asserted in the test suite rather than assumed:</p>
+  <ul>
+    <li><code>max(train.timestamp) ≤ min(val.timestamp)</code>, and likewise val → test.</li>
+    <li>The training graph contains <strong>only</strong> training edges.</li>
+    <li>Scalers, item means and detectors are fitted on the training partition alone — enforced by a <code>LeakageSafeScaler</code> that records its fitted scope and refuses to transform before a fit.</li>
+    <li>Recency weighting is referenced to <code>max(train.timestamp)</code>, <strong>never wall-clock now</strong> — otherwise the reference sits inside the test period and results depend on the day the script ran.</li>
+    <li>Negative sampling excludes positives from <em>every</em> split, not just train. Sampling only against train positives would place val/test items in the negative pool and silently inflate the metrics.</li>
+    <li>Interactions after the reference instant are clamped to age 0, so no row is ever <em>up</em>-weighted for being in the future.</li>
+  </ul>
+  <p>The one deliberate exception, k-core selection, is documented in section F rather than quietly permitted.</p>
+</section>
+
+<section id="feat">
+  <span class="sec-mark">J</span>
+  <h2>Features</h2>
+  <h3>Semantic — SBERT</h3>
+  <p><code>all-MiniLM-L6-v2</code>, verified at <strong>384 dimensions</strong>, <code>max_seq_length</code> 256, unit-normalised so dot product equals cosine. Review title and body are concatenated because Amazon titles routinely carry the verdict ("Broke after two weeks") the body only elaborates. Empty text receives a <strong>zero vector</strong>, not the embedding of the empty string, so "no text" stays representable.</p>
+  <p>115,342 reviews encoded in 394 s and cached to disk keyed by a digest of the model name, pooling settings and the texts themselves. A measured detail: on this M4, <strong>CPU beat MPS</strong> for short-text batches (0.06 s vs 0.81 s per 256 texts), because a 22M-parameter model never amortises MPS warm-up and transfer. <code>device: auto</code> therefore benchmarks both and picks the winner rather than reaching for the accelerator by reflex.</p>
+
+  <h3>Structured — six per-review features</h3>
+  <p><code>sentiment_compound</code> (BERT — see below), <code>review_length_log</code>, <code>helpful_votes_log</code>, <code>verified_purchase_f</code>, <code>recency_weight</code>, <code>rating_centred</code>. The last two are leakage-sensitive and sit behind a fit/transform split: item means come from training rows only, and items unseen in training fall back to the global training mean, never to their own future mean.</p>
+  <p>The original choice here was VADER, deliberately: rule-based, so it needs no training data, cannot overfit this corpus, and introduces no opportunity for label leakage.</p>
+  <div class="update-note">
+    <span class="eyebrow-inline">Regenerated 2026-09-09</span>
+    <code>src/features/sentiment.py</code> has since been switched from VADER to <code>nlptown/bert-base-multilingual-uncased-sentiment</code>, a BERT model fine-tuned on Amazon/Yelp-style product reviews to predict a 1–5 star rating, remapped to the same pos/neg/neu/compound schema. It runs frozen (inference only), so the no-training-data-leakage property above still holds. Every number and figure in this report — <code>sentiment_compound</code> itself, and everything downstream of it (fusion, graph, HGT, the results in sections P and Q) — has been regenerated end to end under the BERT-based pipeline, same seed (42), same split, same training config apart from a training-mode fix noted in section V. Where the new numbers changed the finding, not just the decimal, section Q says so explicitly rather than quietly updating a table.
+  </div>
+
+  <h3>Fusion — the layer that did not work</h3>
+  <p>A two-layer MLP over <code>[sbert ‖ structured]</code>: LayerNorm → Linear(390→256) → GELU → Dropout(0.2) → Linear(256→128) → LayerNorm. The input normalisation matters because the SBERT block is unit-norm while the structured block is standardised but unbounded; without it, 384 semantic dimensions dominate 6 behavioural ones purely by count.</p>
+  <p>Crucially, <code>mode="concat"</code> exists as an ablation arm so the question "does the learned projection beat plain concatenation?" could be answered rather than assumed. <strong>It was answered: no.</strong> See section Q.</p>
+</section>
+
+<section id="graph">
+  <span class="sec-mark">K</span>
+  <h2>The heterogeneous graph</h2>
+  <p><strong>138,480 nodes and 718,506 edges</strong> across five node types. Fusion is deliberately <em>not</em> applied at build time — it is a learned projection, so baking it into a static graph would freeze random weights. Review nodes carry the raw 390-d concatenation and the model applies fusion at forward time.</p>
+
+  <div class="scroll">
+    <table>
+      <caption>Node types</caption>
+      <thead><tr><th>Type</th><th class="num">Count</th><th>Features</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">user</td><td class="num">15,704</td><td>20-d scaled behavioural profile</td></tr>
+        <tr><td class="mono">product</td><td class="num">6,619</td><td>18-d scaled profile + metadata</td></tr>
+        <tr><td class="mono">review</td><td class="num">115,342</td><td>390-d = 384 SBERT + 6 structured</td></tr>
+        <tr><td class="mono">category</td><td class="num">37</td><td>learned embedding</td></tr>
+        <tr><td class="mono">brand</td><td class="num">778</td><td>learned embedding · <em>proxy for</em> <code>store</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="scroll">
+    <table>
+      <caption>Edge types — five relations, each also added in reverse</caption>
+      <thead><tr><th>Relation</th><th class="num">Edges</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">user —purchased→ product</td><td class="num">115,342</td></tr>
+        <tr><td class="mono">user —wrote→ review</td><td class="num">115,342</td></tr>
+        <tr><td class="mono">review —about→ product</td><td class="num">115,342</td></tr>
+        <tr><td class="mono">product —belongs_to→ category</td><td class="num">6,619</td></tr>
+        <tr><td class="mono">product —manufactured_by→ brand</td><td class="num">6,608</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Reverse edges are not optional in practice: without them HGT can push information from users into products but never back, so user embeddings would never see the items they interacted with.</p>
+
+  <div class="panel panel-refuted">
+    <h4>There is no Seller node</h4>
+    <p>Amazon Reviews 2023 has no seller field. Inventing one would put fabricated structure into the graph, so the architecture has five node types and the diagrams say so. <code>brand</code> is itself derived from <code>store</code> — usually but not always the manufacturer — and is labelled as a proxy wherever brand results appear.</p>
+  </div>
+
+  <h3>Edge weighting</h3>
+  <pre>w_e = base · trust_e^α · temporal_e^β
+temporal_e = exp(−λ · age_years),  λ = 0.5,  floor 0.01</pre>
+  <p>Both factors default to 1.0 when disabled, so switching trust or recency off in an ablation leaves the plain graph exactly as it was rather than subtly rescaling every edge. Measured on the dev tier: mean weight 0.2412, range [0.0100, 1.0000].</p>
+</section>
+
+<section id="cola">
+  <span class="sec-mark">L</span>
+  <h2>CoLA and the trust transformation</h2>
+  <p>CoLA's published formulation operates on homogeneous attributed graphs, so it cannot be pointed at a heterogeneous graph as-is. The adaptation is explicit and documented rather than glossed:</p>
+  <ol>
+    <li><strong>Project</strong> the heterogeneous graph down to a user–product bipartite graph.</li>
+    <li><strong>Train</strong> contrastively: score each node by how well its own attributes can be predicted from an RWR-sampled local subgraph. 100 epochs, final loss 1.358.</li>
+    <li><strong>Score</strong> over 32 rounds — a single round is noisy. Output: mean −0.0285, range [−0.476, 0.257].</li>
+    <li><strong>Normalise</strong> by rank, chosen because it is invariant to the score distribution's shape. Min-max is dominated by a single extreme; a z-score sigmoid assumes a normality these scores do not have.</li>
+    <li><strong>Transform</strong>: <code>trust = 1 − normalised_anomaly</code>, clamped to [0.05, 1.0].</li>
+  </ol>
+
+  <div class="panel panel-signal">
+    <h4>Why the floor is 0.05 and not 0</h4>
+    <p>A trust of exactly 0 in a trust-weighted loss silently deletes an interaction from training and changes the effective dataset size — which would confound the very ablation it is supposed to inform.</p>
+  </div>
+
+  <p>Resulting distribution: mean 0.5013, std 0.2867. Three things this section is deliberate about: <strong>CoLA does not output trust</strong> (it outputs an unbounded anomaly score, and the conversion is a modelling choice); <strong>CoLA is not the recommender</strong> (it only reweights edges); and the whole chain is <strong>unsupervised</strong>, because this dataset has no fraud labels.</p>
+</section>
+
+<section id="hgt">
+  <span class="sec-mark">M</span>
+  <h2>HGT — the recommender</h2>
+  <div class="kv">
+    <dt>hidden_channels</dt><dd>128</dd>
+    <dt>num_heads</dt><dd>4</dd>
+    <dt>num_layers</dt><dd>2</dd>
+    <dt>dropout</dt><dd>0.2</dd>
+    <dt>objective</dt><dd>BPR, 1 negative per positive</dd>
+    <dt>optimiser</dt><dd>AdamW, lr 1e-3, weight decay 1e-4</dd>
+    <dt>scoring</dt><dd>score(u,i) = e_u · e_i</dd>
+  </div>
+  <p>Type-specific linear projections map each node type's differently-sized features to 128 dimensions, then two HGT layers apply relation-aware multi-head attention. BPR was chosen as the primary objective because the signal is implicit, it optimises pairwise ranking (which is what the metrics measure), and it is the standard objective for LightGCN and MF — so every model is trained on like terms.</p>
+  <div class="panel panel-signal">
+    <h4>An MPS-specific fix</h4>
+    <p>Installing <code>pyg-lib</code> for <code>NeighborLoader</code> routed <code>HGTConv</code> through <code>pyg::segment_matmul</code>, which has no MPS kernel. <code>PYTORCH_ENABLE_MPS_FALLBACK</code> does not help, because that only covers aten operators, not custom pyg ones. Fixed by setting <code>torch_geometric.backend.use_segment_matmul = False</code> on MPS — which disables only the fused typed-linear path and retains neighbour sampling.</p>
+  </div>
+</section>
+
+<section id="base">
+  <span class="sec-mark">N</span>
+  <h2>Baselines</h2>
+  <p>Four, all trained on the same split and scored by the same evaluator. Presenting HGT numbers without them would prove nothing.</p>
+  <ul>
+    <li><strong>Popularity</strong> — global training frequency. Not a strawman here: with a Gini of 0.521, recommending the head is genuinely strong.</li>
+    <li><strong>Item-kNN CF</strong> — cosine similarity over the implicit matrix, top-50 neighbours. Item-based rather than user-based because 15,704 users against 6,619 items makes the item–item matrix both smaller and better estimated.</li>
+    <li><strong>Matrix factorisation</strong> — BPR-MF, 64 dimensions, 50 epochs.</li>
+    <li><strong>LightGCN</strong> — 64 dimensions, 3 propagation layers.</li>
+  </ul>
+</section>
+
+<section id="eval">
+  <span class="sec-mark">O</span>
+  <h2>Evaluation protocol</h2>
+  <p>Full-catalogue ranking — every model scores all 6,619 items for each evaluable user, with training positives masked to <code>−inf</code>. Conventions fixed once so every model is scored identically:</p>
+  <ul>
+    <li>K is a cut-off; lists shorter than K are not padded.</li>
+    <li>A user with no held-out relevant item is <strong>excluded</strong> from the average rather than scored 0. Including them would penalise every model in proportion to a property of the split, not of the model.</li>
+    <li>NDCG uses binary relevance with ideal DCG over <code>min(K, |relevant|)</code>.</li>
+    <li>Coverage and novelty are computed over the <strong>post-k-core catalogue</strong>, not the full Amazon catalogue, and are reported with that caveat.</li>
+  </ul>
+  <p>Metrics: Precision@K, Recall@K, NDCG@K, MAP@K, MRR, Hit Rate, plus coverage, intra-list diversity and novelty (mean self-information, −log₂ p(item)).</p>
+</section>
+
+<section id="results">
+  <span class="sec-mark">P</span>
+  <h2>Results</h2>
+  <p>Dev tier, seed 42, chronological test split, 1,862 evaluable users. Sorted by NDCG@10.</p>
+  <div class="scroll">
+    <table>
+      <caption>Model comparison</caption>
+      <thead><tr><th>Model</th><th class="num">NDCG@10</th><th class="num">Recall@10</th><th class="num">MAP@10</th><th class="num">Coverage</th><th class="num">Novelty</th></tr></thead>
+      <tbody>
+        <tr class="hi"><td><strong>matrix_factorization</strong></td><td class="num"><strong>0.0180</strong></td><td class="num">0.0289</td><td class="num">0.0122</td><td class="num">0.070</td><td class="num">9.25</td></tr>
+        <tr><td>B · HGT + SBERT</td><td class="num">0.0164</td><td class="num">0.0269</td><td class="num">0.0115</td><td class="num">0.244</td><td class="num">10.63</td></tr>
+        <tr><td>D · HGT + SBERT + temporal</td><td class="num">0.0156</td><td class="num">0.0261</td><td class="num">0.0106</td><td class="num">0.241</td><td class="num">10.68</td></tr>
+        <tr><td>G · full + trust-weighted loss</td><td class="num">0.0151</td><td class="num">0.0257</td><td class="num">0.0100</td><td class="num">0.302</td><td class="num">11.06</td></tr>
+        <tr><td>E · HGT + SBERT + trust + temporal</td><td class="num">0.0145</td><td class="num">0.0251</td><td class="num">0.0097</td><td class="num">0.302</td><td class="num">11.09</td></tr>
+        <tr><td>C · HGT + SBERT + trust</td><td class="num">0.0136</td><td class="num">0.0235</td><td class="num">0.0089</td><td class="num">0.235</td><td class="num">10.79</td></tr>
+        <tr><td>A · HGT only</td><td class="num">0.0133</td><td class="num">0.0243</td><td class="num">0.0085</td><td class="num">0.299</td><td class="num">10.97</td></tr>
+        <tr><td>popularity</td><td class="num">0.0121</td><td class="num">0.0257</td><td class="num">0.0066</td><td class="num">0.002</td><td class="num">8.21</td></tr>
+        <tr><td>F · DyTrustRec full (+ fusion)</td><td class="num">0.0105</td><td class="num">0.0192</td><td class="num">0.0064</td><td class="num">0.335</td><td class="num">11.10</td></tr>
+        <tr><td>lightgcn</td><td class="num">0.0075</td><td class="num">0.0126</td><td class="num">0.0047</td><td class="num">0.449</td><td class="num">11.31</td></tr>
+        <tr><td>item_knn_cf</td><td class="num">0.0068</td><td class="num">0.0131</td><td class="num">0.0040</td><td class="num">0.761</td><td class="num">13.44</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Two readings sit side by side. On ranking accuracy, <strong>the simplest latent-factor baseline wins</strong>, by a clearer margin than in the pre-sentiment-swap run (0.0180 vs the best arm's 0.0164, not 0.0176). On catalogue reach, the graph models are in a different regime entirely — 23–34% coverage against MF's 7% and popularity's 0.2%, at consistently higher novelty. Popularity's 0.002 coverage is the tell: it recommends essentially the same handful of items to everyone.</p>
+</section>
+
+<section id="ablation">
+  <span class="sec-mark">Q</span>
+  <h2>Ablation — what each component actually contributed</h2>
+  <p>All arms share one training budget, so this comparison is internally valid even where the cross-family comparison in section P is not.</p>
+
+  <div class="chart">
+    <p class="chart-title">Change in NDCG@10 when each component is added</p>
+    <div class="d-row">
+      <span class="bar-lab">A→B · SBERT semantics</span>
+      <span class="d-track"><span class="d-fill p" style="width:23.6%"></span><span class="d-zero"></span></span>
+      <span class="bar-val pos">+23.6%</span>
+    </div>
+    <div class="d-row">
+      <span class="bar-lab">B→C · trust alone</span>
+      <span class="d-track"><span class="d-fill n" style="width:17.1%"></span><span class="d-zero"></span></span>
+      <span class="bar-val neg">−17.1%</span>
+    </div>
+    <div class="d-row">
+      <span class="bar-lab">B→D · temporal alone</span>
+      <span class="d-track"><span class="d-fill n" style="width:4.8%"></span><span class="d-zero"></span></span>
+      <span class="bar-val neg">−4.8%</span>
+    </div>
+    <div class="d-row">
+      <span class="bar-lab">B→E · trust + temporal</span>
+      <span class="d-track"><span class="d-fill n" style="width:11.6%"></span><span class="d-zero"></span></span>
+      <span class="bar-val neg">−11.6%</span>
+    </div>
+    <div class="d-row">
+      <span class="bar-lab">E→F · learned fusion layer</span>
+      <span class="d-track"><span class="d-fill n" style="width:27.7%"></span><span class="d-zero"></span></span>
+      <span class="bar-val neg">−27.7%</span>
+    </div>
+    <div class="d-row">
+      <span class="bar-lab">F→G · trust-weighted loss</span>
+      <span class="d-track"><span class="d-fill p" style="width:43.8%"></span><span class="d-zero"></span></span>
+      <span class="bar-val pos">+43.8%</span>
+    </div>
+    <p class="chance-note">Bars are relative change against the preceding arm. The centre rule is zero. Scale: ±45%.</p>
+  </div>
+
+  <div class="update-note">
+    <span class="eyebrow-inline">Regenerated</span>
+    This section was re-run in full after the sentiment-model swap (section J): sentiment_compound is one of the six structured features every SBERT-enabled arm (B–G) trains on, so B onward were expected to move. They moved enough to overturn two of the readings below the original run reported.
+  </div>
+
+  <h3>Reading it honestly</h3>
+  <p><strong>SBERT is the one component that clearly earns its place.</strong> +23.6% is the largest positive effect measured anywhere in the project, and larger than it was under VADER-derived sentiment.</p>
+  <p><strong>Trust and recency no longer help, even together.</strong> Trust alone costs 17.1%; recency alone costs 4.8%; combined they cost 11.6%. Under the previous sentiment feature this pair combined to a +8.4% gain — that result did not survive the swap. The direction of every individual arm (trust hurts, recency is roughly neutral-to-negative) stayed the same; only the combination flipped from a net positive to a net negative.</p>
+  <p><strong>The fusion layer is refuted; the trust-weighted objective is not.</strong> The learned fusion layer lost to plain concatenation by 27.7%, consistent with the earlier run. But the trust-weighted training objective — weighting BPR loss by the same CoLA trust scores section R shows are inverted — <em>gained</em> 43.8% on top of it, reversing the earlier −19.3% finding. No mechanism for this reversal is confirmed here: it may be that up-weighting the (mislabelled) "high-trust" edges incidentally concentrates gradient on the interactions the fusion layer under-fits, or it may be single-seed variance on top of an already-weak F arm (0.0105 NDCG@10) — the report's own single-seed caveat (section V) applies with particular force to a result this size. It is reported as measured, not explained away.</p>
+</section>
+
+<section id="trustfail">
+  <span class="sec-mark">R</span>
+  <h2>Why the trust component failed</h2>
+  <p>The corpus has no fraud labels, so trust was tested against <strong>synthetically injected</strong> shill campaigns where labels exist by construction: 785 shill users, 11,775 injected rows, 78 target items, sharing templates, a forced 5.0 rating and 30-minute burst windows.</p>
+
+  <div class="chart">
+    <p class="chart-title">Detection of synthetic shills — ROC AUC · chance = 0.5</p>
+    <div class="bar-row">
+      <span class="bar-lab">trivial rule:<br>frac_duplicate_text</span>
+      <span class="bar-track"><span class="bar-fill" style="width:98.95%"></span><span class="chance"></span></span>
+      <span class="bar-val">0.9895</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-lab">consensus indicators<br>(Module 4)</span>
+      <span class="bar-track"><span class="bar-fill" style="width:94.78%"></span><span class="chance"></span></span>
+      <span class="bar-val">0.9478</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-lab">trivial rule:<br>−min_gap_hours</span>
+      <span class="bar-track"><span class="bar-fill" style="width:91.65%"></span><span class="chance"></span></span>
+      <span class="bar-val">0.9165</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-lab">Isolation Forest<br>(Module 4)</span>
+      <span class="bar-track"><span class="bar-fill" style="width:91.29%"></span><span class="chance"></span></span>
+      <span class="bar-val">0.9129</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-lab"><strong>CoLA trust</strong><br>(1 − trust)</span>
+      <span class="bar-track"><span class="bar-fill below" style="width:29.51%"></span><span class="chance"></span></span>
+      <span class="bar-val neg">0.2951</span>
+    </div>
+    <div class="chart-axis">
+      <span></span>
+      <span class="axis-in"><span>0.0</span><span>0.5 — chance</span><span>1.0</span></span>
+      <span></span>
+    </div>
+    <p class="chance-note">CoLA is the only detector that falls to the <em>left</em> of the chance line. It is not failing to find the shills — it is actively preferring them.</p>
+  </div>
+
+  <div class="panel panel-refuted">
+    <h4>The mechanism</h4>
+    <p>CoLA's contrastive objective scores a node by how well its own attributes can be predicted from its neighbourhood context. A coordinated campaign is <strong>internally consistent by construction</strong>: the injected users share templates, share a forced rating, and overlap on target items, so each one is unusually <em>easy</em> to predict from the others.</p>
+    <p>A detector that equates "anomalous" with "unpredictable from context" will therefore rate a large, well-organised campaign as exemplary. <strong>Isolated eccentric users look stranger to it than a botnet does.</strong></p>
+  </div>
+
+  <p>This was re-checked against the raw anomaly score with the trust transform bypassed, and the direction is unchanged — so it is a property of the detector on this data, not a sign error in the mapping.</p>
+
+  <div class="panel panel-signal">
+    <h4>The two negative results are one finding — but not the whole story</h4>
+    <p>Trust weighting alone cost 17.1% NDCG@10. If trust is anti-correlated with manipulation, then trust weighting <em>up</em>-weights the manipulated edges and <em>down</em>-weights genuine ones — exactly the direction of harm observed in the ablation. The section Q result and the section R result explain each other rather than being independent failures.</p>
+    <p>That story does not, however, extend to <strong>loss</strong>-weighting by the same trust scores (ablation G), which now <em>helps</em> by 43.8% (section Q). If the trust scores are genuinely inverted, weighting the objective by them should hurt for the same reason edge-weighting does — it does not, and this document does not resolve why. Read as a caution against the tidy version of this finding, not as evidence the inversion above is wrong: the inversion is re-checked directly against the raw anomaly score, above.</p>
+  </div>
+
+  <h3>What would have to change</h3>
+  <p>Three candidates, none tested here, offered as the honest next experiments rather than as claims:</p>
+  <ul>
+    <li><strong>The projection.</strong> A user–user co-occurrence graph would reward dense coordinated cliques rather than treating them as ordinary neighbourhoods.</li>
+    <li><strong>The detector.</strong> A density- or reconstruction-based objective, rather than a contrastive-predictability one, would not have this inversion built in.</li>
+    <li><strong>The target.</strong> Score the <em>interaction</em> rather than the user.</li>
+  </ul>
+  <p>And the blunt comparison worth keeping in view: a one-line rule counting a user's duplicated review text reached 0.9895 AUC. On this generative process, the entire graph-anomaly pipeline is beaten by a single <code>groupby</code>.</p>
+</section>
+
+<section id="xai">
+  <span class="sec-mark">S</span>
+  <h2>Explanations</h2>
+  <p>Explanations are assembled from retrieved graph evidence only. Six sources are searched — shared category, shared brand, similar high-trust users, recent interactions, semantic similarity, review sentiment — and a template with no supporting evidence is <strong>dropped, never emitted with invented content</strong>.</p>
+  <p>A live example from the running system, for a user with 180 training interactions and trust 0.689:</p>
+  <pre>'Grand Theft Auto V: Premium Edition - Xbox One [Digital Code]'
+was recommended because 256 high-trust users with overlapping
+history also bought it, the user's recent activity is
+concentrated in 'xbox one', and supporting reviews are
+strongly positive.</pre>
+  <p>When nothing is found, the system says so explicitly rather than producing plausible filler — a behaviour pinned by a test asserting that an unknown user yields <code>has_support == False</code> and the phrase "no graph evidence".</p>
+</section>
+
+<section id="cf">
+  <span class="sec-mark">T</span>
+  <h2>Counterfactuals — the "why not?" module</h2>
+  <p>For an item ranked below the top-K, a bisection search finds the smallest change to one perturbable factor — category affinity, brand affinity, recency weight, trust weight, semantic similarity — that would lift it across the boundary.</p>
+  <p>Three outcomes are possible, and all three are honest: the item is <em>already</em> in the top-K (reported as such); a perturbation is found (reported with the required magnitude and the achieved rank); or no tested factor within bounds moves it (<strong>reported as infeasible</strong>). The third case is the one that matters — the module never manufactures a plausible-sounding reason when the search fails.</p>
+</section>
+
+<section id="conf">
+  <span class="sec-mark">U</span>
+  <h2>Confidence</h2>
+  <p>A ranking score is not a confidence, and the two are computed separately. Confidence blends three components: predictive stability under Monte Carlo dropout (0.5), evidence volume from interaction count (0.3), and evidence trust from supporting neighbours (0.2).</p>
+  <p>The behaviour that makes it worth having is the cold-start case: a user with one interaction must come out with <em>low</em> confidence even when the score is high. That is asserted directly in the test suite, along with the requirement that the stated reason names the penalty.</p>
+</section>
+
+<section id="defects">
+  <span class="sec-mark">V</span>
+  <h2>Defects found by running, not by reading</h2>
+  <p>Six real bugs surfaced only when the code met real data. Each is listed with its symptom, cause and fix.</p>
+
+  <div class="panel">
+    <h4>1 · user_core truncated histories</h4>
+    <p>The row cap was applied by cutting the record stream part-way through, so users late in the file kept partial histories — destroying the exact property <code>user_core</code> exists to provide, and corrupting the recency signal. <strong>Fix:</strong> the cap is spent user-by-user; a user is fully in or fully out.</p>
+  </div>
+
+  <div class="panel">
+    <h4>2 · k-core shipped a violated invariant</h4>
+    <p>A 10-pass ceiling with only a warning on failure, so a non-converged run silently returned data breaking the k-core guarantee — which is what happened on the first smoke run. <strong>Fix:</strong> raises on non-convergence, ceiling 100, post-condition asserted before returning. The dev tier needs exactly 10 passes, so the original ceiling sat on the edge.</p>
+  </div>
+
+  <div class="panel">
+    <h4>3 · <code>max_products</code> was dead config</h4>
+    <p>Declared in YAML and read by nothing. <strong>Fix:</strong> a reported guard recorded in the run manifest, which deliberately does <em>not</em> truncate — dropping items by popularity would bias the coverage and novelty metrics, and dropping users would undo fix 1.</p>
+  </div>
+
+  <div class="panel">
+    <h4>4 · A configured feature was silently dropped</h4>
+    <p><code>fusion.structured_features</code> named <code>verified_purchase</code> but the builder produces <code>verified_purchase_f</code>, so review nodes were built at 389-d instead of 390-d — the model trained on a narrower input than the config claimed. <strong>Fix:</strong> the mismatch is now fatal, not a warning.</p>
+  </div>
+
+  <div class="panel">
+    <h4>5 · HGT crashed on MPS</h4>
+    <p>Installing <code>pyg-lib</code> routed <code>HGTConv</code> through <code>pyg::segment_matmul</code>, which has no MPS kernel. <code>PYTORCH_ENABLE_MPS_FALLBACK</code> does not help because it covers aten operators, not custom pyg ones. <strong>Fix:</strong> <code>use_segment_matmul = False</code> on MPS, retaining neighbour sampling.</p>
+  </div>
+
+  <div class="panel panel-refuted">
+    <h4>6 · LightGCN never converged</h4>
+    <p>BPR loss pinned at exactly <strong>0.69315 = ln(2)</strong> — positive and negative scores identical. Diagnosed: layer-averaging shrinks embedding norms until dot products are ~1e-3, sigmoid sits at 0.5 and gradients vanish. Measured: at lr=1e-3 the item-embedding norm decays to <strong>0.04</strong>; at lr=0.05 with no weight decay it reaches <strong>4.27</strong> and trains. NDCG@10 improved 0.0047 → 0.0075.</p>
+  </div>
+
+  <h3>And one excuse that was tested and eliminated</h3>
+  <div class="panel panel-signal">
+    <p>The obvious defence of HGT's underperformance is that it trains full-graph at ~100 optimiser steps while MF and LightGCN get 750–1500 mini-batch steps. A mini-batch rerun via <code>LinkNeighborLoader</code> was launched to equalise the budget. Arm A reached <strong>684 steps and scored NDCG@10 0.0087, against 0.0141 at 100 full-batch steps</strong> (both figures from the pre-sentiment-swap run) — 6.8× more steps, materially <em>worse</em>. Neighbour sampling adds gradient noise that 12 epochs does not overcome. At ~3 hours per arm the remaining six were not run.</p>
+    <p><strong>The training budget is not why HGT trails matrix factorisation here.</strong> <em>(Partial evidence: one arm, one seed; a longer mini-batch schedule remains untested.)</em></p>
+    <p>Not repeated after the sentiment-model swap: at ~3 hours for one arm alone (~21 for all seven), re-verifying a training-dynamics finding that has nothing to do with which sentiment feature is used was not worth the machine-time. The underlying <code>training.full_batch</code> flag was, in fact, left at <code>false</code> from this exact experiment when this project's sentiment backend was swapped — the graph in section P was briefly, accidentally trained in the slow, memory-heavy mini-batch mode this panel already found worse, before being reset to <code>full_batch: true</code>.</p>
+  </div>
+</section>
+
+<section id="limits">
+  <span class="sec-mark">W</span>
+  <h2>Limitations</h2>
+  <ol>
+    <li><strong>Single seed.</strong> Three seeds are configured but were not run. No confidence intervals, so small deltas are not distinguishable from noise — including the F→G +43.8% swing in section Q, the largest single-seed-sensitive result in this report.</li>
+    <li><strong>Only 1,862 of 17,223 users are evaluable.</strong> The strict temporal split leaves 42.3% of test rows with an unseen user and 59.7% with an unseen item. The evaluation is noisy and biased toward users active late in the timeline.</li>
+    <li><strong>Trust is validated only synthetically — and fails.</strong> Whether the failure transfers to real Amazon manipulation is untestable here, because no labels exist.</li>
+    <li><strong>This is not a temporal GNN.</strong> Despite the "Dynamic" in the name, there is no TGN, TGAT or temporal attention — it is exponential recency weighting plus preference snapshots, and it is described that way everywhere.</li>
+    <li><strong>k-core selection leakage</strong> is present by design and disclosed in every cleaning report.</li>
+    <li><strong>Brand is a proxy</strong> for <code>store</code>; there is no seller modelling because the field does not exist.</li>
+    <li><strong>Coverage and novelty are catalogue-relative</strong>, computed over the post-k-core catalogue.</li>
+    <li><strong>CoLA is adapted, not applied as published</strong> — it runs on a bipartite projection.</li>
+    <li><strong>Reproducible up to backend non-determinism.</strong> MPS offers no deterministic-algorithm guarantee, so bit-exactness across runs is not claimed.</li>
+  </ol>
+</section>
+
+<section id="run">
+  <span class="sec-mark">X</span>
+  <h2>Running it</h2>
+  <h4>Setup</h4>
+  <pre>brew install uv
+uv venv --python 3.12 .venv
+uv pip install -r requirements.txt
+uv pip install -r requirements-pyg.txt \
+  -f https://data.pyg.org/whl/torch-2.13.0+cpu.html</pre>
+  <p><code>pyg-lib</code> comes from PyG's own wheel index, not PyPI.</p>
+
+  <h4>Pipeline</h4>
+  <pre>python scripts/prepare_data.py --tier dev    # ingest + clean
+python scripts/run_eda.py                    # EDA, outliers, graph stats
+python scripts/build_graph.py                # split, SBERT, graph
+python scripts/run_experiments.py            # baselines + ablations
+python scripts/run_synthetic_anomaly.py      # trust validation
+python scripts/export_model.py               # embeddings for the app
+streamlit run app/streamlit_app.py           # dashboard</pre>
+
+  <h4>Overriding config without editing YAML</h4>
+  <pre>python scripts/prepare_data.py --tier dev \
+  --set sampling.strategy=reservoir \
+  --set tiers.dev.limits.max_reviews=50000</pre>
+  <p>Start with <code>--tier smoke</code> (0.5 GB) to validate the whole pipeline in about 90 seconds before committing to the 2.9 GB dev tier.</p>
+</section>
+
+<section id="files">
+  <span class="sec-mark">Y</span>
+  <h2>File map</h2>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Path</th><th>Contents</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">configs/</td><td>5 YAML files — data, analytics, model, training, experiment. No hyperparameter lives in code</td></tr>
+        <tr><td class="mono">src/data/</td><td>loader · cleaner · validator · splitter — ingestion, schema adaptation, cleaning, chronological split</td></tr>
+        <tr><td class="mono">src/analytics/</td><td>eda · outliers · graph_stats</td></tr>
+        <tr><td class="mono">src/features/</td><td>sbert · sentiment · fusion · transforms · user/product/review features</td></tr>
+        <tr><td class="mono">src/graph/</td><td>builder · hetero_graph · weighting · temporal</td></tr>
+        <tr><td class="mono">src/anomaly/</td><td>cola · trust · synthetic</td></tr>
+        <tr><td class="mono">src/models/</td><td>hgt · lightgcn · matrix_factorization · collaborative_filtering · popularity</td></tr>
+        <tr><td class="mono">src/training/</td><td>losses · negative_sampling · early_stopping</td></tr>
+        <tr><td class="mono">src/recommendation/</td><td>scorer · cold_start · confidence</td></tr>
+        <tr><td class="mono">src/explainability/</td><td>graph_paths · explanations · counterfactual</td></tr>
+        <tr><td class="mono">src/evaluation/</td><td>metrics · evaluator</td></tr>
+        <tr><td class="mono">scripts/</td><td>6 CLI entrypoints, one per pipeline stage</td></tr>
+        <tr><td class="mono">tests/</td><td>7 files, 229 tests</td></tr>
+        <tr><td class="mono">reports/</td><td>Generated figures, tables and results — never hand-edited</td></tr>
+        <tr><td class="mono">docs/</td><td>architecture.md · plan.md · viva.md · maths.md</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Test distribution: data 67 · analytics 43 · models 28 · features 32 · graph 21 · metrics 25 · anomaly 13.</p>
+</section>
+
+<section id="viva">
+  <span class="sec-mark">Z</span>
+  <h2>The questions you will actually be asked</h2>
+
+  <h3>"What is your actual novelty?"</h3>
+  <p>Not HGT, SBERT or CoLA — all existing published work. The contribution is their integration into one explainable pipeline, the specific anomaly-to-trust transformation, and the experimental evaluation that determined whether any of it works. That evaluation returned a largely negative answer, which is itself the result.</p>
+
+  <h3>"Does CoLA detect fake reviews?"</h3>
+  <p><strong>No.</strong> On this project's own synthetic benchmark it scores 0.2951 ROC AUC — below the 0.5 chance line — meaning it ranks injected shills as <em>more</em> trustworthy than genuine users. A one-line duplicate-text rule scores 0.9895 on the same data. The mechanism is in section R: CoLA rewards predictability-from-context, and a coordinated campaign is internally consistent by construction.</p>
+
+  <h3>"Why does your system lose to matrix factorisation?"</h3>
+  <p>On NDCG@10 it does — the best HGT arm reaches 0.0164 against MF's 0.0180, a real if modest gap even allowing for single-seed noise. The obvious excuse (training budget) was tested and eliminated on the earlier VADER-based run: 6.8× more optimiser steps made it worse (see section V for that caveat). What the graph models do win on is catalogue reach, 23–34% against 7%. If the deployment objective is discovery rather than head-item accuracy, that is the relevant axis.</p>
+
+  <h3>"Is this a failed project?"</h3>
+  <p>The pipeline works, is reproducible, is covered by 229 tests, and is honestly measured. What failed is a <em>hypothesis</em> — that a contrastive graph-anomaly detector yields a useful trust signal for recommendation. Measuring that cleanly, and being able to explain the mechanism of the failure, is a result. Reporting it as a success would not have survived this document.</p>
+
+  <h3>"What would you do next?"</h3>
+  <p>In order: run the three configured seeds so the deltas acquire error bars; replace the CoLA projection with a user–user co-occurrence graph that rewards dense coordinated cliques; and test a longer mini-batch schedule, since 12 epochs was clearly too few and 100+ was never tried.</p>
+</section>
+
+<footer class="foot">
+  <p>DyTrustRec · Amazon Reviews 2023 (Video_Games tier) · seed 42 · 229 tests · 11,654 lines of Python.<br>
+  All figures produced by real runs. No result in this document is projected, estimated or fabricated.</p>
+</footer>
+
+  </main>
+</div>
+</div>

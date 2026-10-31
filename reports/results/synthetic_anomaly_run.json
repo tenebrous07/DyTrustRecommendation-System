@@ -1,0 +1,299 @@
+{
+  "environment": {
+    "timestamp_utc": "2026-10-30T06:43:34+00:00",
+    "seed": 42,
+    "python": "3.12.14",
+    "git_revision": "not-a-git-repository",
+    "hardware": {
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "machine": "arm64",
+      "processor": "arm",
+      "cpu_count": 12,
+      "torch_threads": 6,
+      "cuda_available": false,
+      "mps_available": true,
+      "cpu_brand": "Apple M3 Pro",
+      "memory_bytes": 19327352832
+    },
+    "packages": {
+      "torch": "2.13.0",
+      "torch_geometric": "2.8.0.post1",
+      "pyg-lib": "0.8.0+pt213",
+      "numpy": "2.5.2",
+      "pandas": "3.0.5",
+      "scipy": "1.18.1",
+      "scikit-learn": "1.9.0",
+      "networkx": "3.6.1",
+      "sentence-transformers": "6.0.0",
+      "transformers": "5.15.1",
+      "nltk": "3.10.3",
+      "pyarrow": "25.0.1",
+      "matplotlib": "3.11.1",
+      "plotly": "6.9.0",
+      "streamlit": "1.62.0"
+    }
+  },
+  "config": {
+    "seed": 42,
+    "k_values": [
+      5,
+      10,
+      20
+    ],
+    "primary_metric": "ndcg@10",
+    "metrics": {
+      "accuracy": [
+        "precision",
+        "recall",
+        "ndcg",
+        "map",
+        "mrr",
+        "hit_rate"
+      ],
+      "beyond_accuracy": [
+        "coverage",
+        "diversity",
+        "novelty"
+      ],
+      "catalogue_scope": "filtered",
+      "diversity_basis": "category",
+      "novelty_basis": "popularity"
+    },
+    "baselines": [
+      {
+        "name": "popularity",
+        "module": "src.models.popularity",
+        "params": {}
+      },
+      {
+        "name": "item_knn_cf",
+        "module": "src.models.collaborative_filtering",
+        "params": {
+          "similarity": "cosine",
+          "k": 50
+        }
+      },
+      {
+        "name": "matrix_factorization",
+        "module": "src.models.matrix_factorization",
+        "params": {
+          "embedding_dim": 64,
+          "epochs": 50
+        }
+      },
+      {
+        "name": "lightgcn",
+        "module": "src.models.lightgcn",
+        "params": {
+          "embedding_dim": 64,
+          "num_layers": 3,
+          "epochs": 100
+        }
+      }
+    ],
+    "ablations": [
+      {
+        "id": "A",
+        "name": "hgt_only",
+        "description": "HGT on the plain heterogeneous graph; review nodes carry a constant feature.",
+        "flags": {
+          "sbert": false,
+          "fusion": false,
+          "trust": "none",
+          "recency": false
+        }
+      },
+      {
+        "id": "B",
+        "name": "hgt_sbert",
+        "description": "Adds SBERT review semantics and structured review features as node features.",
+        "flags": {
+          "sbert": true,
+          "fusion": false,
+          "trust": "none",
+          "recency": false
+        }
+      },
+      {
+        "id": "C",
+        "name": "hgt_sbert_trust",
+        "description": "B plus behavioural-trust weighting of the training objective.",
+        "flags": {
+          "sbert": true,
+          "fusion": false,
+          "trust": "behavioural",
+          "recency": false
+        }
+      },
+      {
+        "id": "D",
+        "name": "hgt_sbert_recency",
+        "description": "B plus exponential recency weighting of the training objective.",
+        "flags": {
+          "sbert": true,
+          "fusion": false,
+          "trust": "none",
+          "recency": true
+        }
+      },
+      {
+        "id": "E",
+        "name": "hgt_sbert_trust_recency",
+        "description": "B plus trust and recency weighting together.",
+        "flags": {
+          "sbert": true,
+          "fusion": false,
+          "trust": "behavioural",
+          "recency": true
+        }
+      },
+      {
+        "id": "F",
+        "name": "dytrustrec_full",
+        "description": "E plus the learned Semantic-Behavioural Fusion Layer.",
+        "flags": {
+          "sbert": true,
+          "fusion": true,
+          "trust": "behavioural",
+          "recency": true
+        }
+      },
+      {
+        "id": "H",
+        "name": "hgt_sbert_unmasked",
+        "description": "B with edge masking switched off, so the target edge is always visible to message passing.",
+        "flags": {
+          "sbert": true,
+          "fusion": false,
+          "trust": "none",
+          "recency": false,
+          "mask": false
+        }
+      },
+      {
+        "id": "I",
+        "name": "dytrustrec_cosine",
+        "description": "E with a cosine learning-rate decay over a fixed, validation-tuned epoch budget.",
+        "flags": {
+          "sbert": true,
+          "fusion": false,
+          "trust": "behavioural",
+          "recency": true,
+          "schedule": "cosine"
+        }
+      },
+      {
+        "id": "G",
+        "name": "dytrustrec_cola_trust",
+        "description": "F with CoLA trust in place of behavioural trust (the original design; negative control).",
+        "flags": {
+          "sbert": true,
+          "fusion": true,
+          "trust": "cola",
+          "recency": true
+        }
+      }
+    ],
+    "synthetic_anomaly": {
+      "enabled": true,
+      "output_suffix": "_synthetic",
+      "injection_rate": 0.05,
+      "patterns": {
+        "burst_reviews": {
+          "enabled": true,
+          "reviews_per_burst": 15,
+          "window_minutes": 30
+        },
+        "extreme_rating": {
+          "enabled": true,
+          "forced_rating": 5.0
+        },
+        "duplicated_text": {
+          "enabled": true,
+          "template_pool_size": 5
+        },
+        "coordinated_targeting": {
+          "enabled": true,
+          "shills_per_target": 10
+        }
+      },
+      "evaluate": [
+        "roc_auc",
+        "average_precision",
+        "precision_at_100"
+      ]
+    },
+    "runtime": {
+      "repeat_seeds": [
+        42,
+        43,
+        44,
+        45,
+        46
+      ],
+      "report_mean_std": true,
+      "save_predictions": true,
+      "results_dir": "reports/results",
+      "tables_dir": "reports/tables"
+    }
+  },
+  "phase": "45-synthetic-anomaly",
+  "injection": {
+    "n_genuine_users": 15704,
+    "n_shill_users": 785,
+    "n_injected_rows": 11775,
+    "n_target_items": 78,
+    "injection_rate_requested": 0.05,
+    "injection_rate_actual": 0.04760749590636182,
+    "reviews_per_shill": 15,
+    "burst_window_minutes": 30,
+    "forced_rating": 5.0,
+    "template_pool_size": 5,
+    "seed": 42,
+    "WARNING": "SYNTHETIC. These users were generated by this script, not observed in Amazon data. Detection performance here measures recognition of this generative process and must never be reported as detection of real fraud."
+  },
+  "detection": {
+    "CoLA trust (1 - trust)": {
+      "roc_auc": 0.2951204772365189,
+      "average_precision": 0.031824935007665686,
+      "precision_at_100": 0.02,
+      "n_positives": 785,
+      "prevalence": 0.04760749590636182
+    },
+    "Behavioural trust detector (Module 11)": {
+      "roc_auc": 0.9997087033690146,
+      "average_precision": 0.9881658888586751,
+      "precision_at_100": 0.98,
+      "n_positives": 785,
+      "prevalence": 0.04760749590636182
+    },
+    "Isolation Forest (Module 4)": {
+      "roc_auc": 0.9129337813239192,
+      "average_precision": 0.2025696186848521,
+      "precision_at_100": 0.0,
+      "n_positives": 785,
+      "prevalence": 0.04760749590636182
+    },
+    "consensus indicator count": {
+      "roc_auc": 0.9478400569776535,
+      "average_precision": 0.32719300758570097,
+      "precision_at_100": 0.33,
+      "n_positives": 785,
+      "prevalence": 0.04760749590636182
+    },
+    "trivial rule: frac_duplicate_text": {
+      "roc_auc": 0.989541388294921,
+      "average_precision": 0.7074885638998261,
+      "precision_at_100": 0.56,
+      "n_positives": 785,
+      "prevalence": 0.04760749590636182
+    },
+    "trivial rule: -min_gap_hours": {
+      "roc_auc": 0.9165494774344481,
+      "average_precision": 0.31089314154862085,
+      "precision_at_100": 0.8,
+      "n_positives": 785,
+      "prevalence": 0.04760749590636182
+    }
+  }
+}
